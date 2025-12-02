@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  evaluations Evaluation[]
+
+  @@map("projects")
+}
+
+model Criterion {
+  id          String        @id @default(uuid())
+  name        String
+  description String
+  weight      Float
+  type        CriterionType
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  evaluations Evaluation[]
+
+  @@map("criteria")
+}
+
+model Evaluation {
+  id             String        @id @default(uuid())
+  projectId      String
+  criterionId    String
+  linguisticTerm String
+  fuzzyValue     Float
+  label          String
+  alpha          Float
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, criterionId])
+  @@map("evaluations")
+}
+
+enum CriterionType {
+  BENEFIT
+  COST
+}

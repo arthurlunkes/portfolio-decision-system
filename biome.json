@@ -1,0 +1,75 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.6.0/schema.json",
+  "formatter": {
+    "enabled": true,
+    "attributePosition": "multiline",
+    "indentWidth": 2,
+    "indentStyle": "space",
+    "lineWidth": 80,
+    "lineEnding": "lf",
+    "formatWithErrors": true,
+    "indentSize": 2,
+    "ignore": ["**/dist/**", "**/.yarn/**", "**/node_modules/**"],
+    "include": ["**/*.{js,jsx,ts,tsx,vue,css,scss,html}"]
+  },
+  "linter": {
+    "enabled": true,
+    "ignore": ["**/dist/**", "**/.yarn/**", "**/node_modules/**"],
+    "include": ["**/*.{js,jsx,ts,tsx,vue,css,scss,html}"],
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-console": "off",
+      "no-unused-vars": "off",
+      "no-shadow": "off",
+      "no-unused-expressions": "off",
+      "no-undef": "off"
+    }
+  },
+  "files": {
+    "ignore": ["**/dist/**", "**/.yarn/**", "**/node_modules/**"]
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "arrowParentheses": "always",
+      "trailingComma": "all",
+      "bracketSameLine": true,
+      "bracketSpacing": true,
+      "indentWidth": 2,
+      "indentStyle": "space",
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "indentSize": 2,
+      "jsxQuoteStyle": "double",
+      "lineWidth": 80,
+      "lineEnding": "lf",
+      "attributePosition": "multiline",
+      "quoteProperties": "asNeeded"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "indentWidth": 2,
+      "indentStyle": "space",
+      "trailingCommas": "all",
+      "lineWidth": 80,
+      "lineEnding": "lf"
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "indentWidth": 2,
+      "indentStyle": "space",
+      "lineWidth": 80,
+      "lineEnding": "lf"
+    }
+  },
+  "extends": ["biome:recommended"],
+  "organizeImports": {
+    "enabled": true
+  }
+}
