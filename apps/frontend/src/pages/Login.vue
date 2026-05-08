@@ -19,23 +19,11 @@
 
       <!-- Logo -->
       <div class="relative flex items-center gap-3">
-        <div
-          class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center"
-        >
-          <svg
-            class="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-        </div>
+        <img
+          src="/logo.png"
+          alt="DecisionPortfólio"
+          class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-black/20"
+        />
         <span class="text-white font-bold text-xl tracking-tight"
           >DecisionPortfólio</span
         >
@@ -87,23 +75,11 @@
       <div class="w-full max-w-sm">
         <!-- Logo mobile -->
         <div class="flex items-center gap-2 mb-10 lg:hidden">
-          <div
-            class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center"
-          >
-            <svg
-              class="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          </div>
+          <img
+            src="/logo.png"
+            alt="DecisionPortfólio"
+            class="w-8 h-8 rounded-lg object-cover"
+          />
           <span class="font-bold text-gray-900 text-lg">DecisionPortfólio</span>
         </div>
 
