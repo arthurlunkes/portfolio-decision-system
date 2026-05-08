@@ -29,6 +29,13 @@
         </AppButton>
       </div>
 
+      <div
+        v-if="pageError"
+        class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ pageError }}
+      </div>
+
       <!-- Ranking Table -->
       <div
         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
@@ -216,7 +223,8 @@
 import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import { useAuthStore } from "@/stores/auth";
-import { ref, onMounted } from "vue";
+import { getVikorRanking } from "@/services/api/results";
+import { ref, onMounted, nextTick } from "vue";
 import {
   Chart,
   BarController,
@@ -262,49 +270,62 @@ interface RankingResult {
 
 const barChart = ref<HTMLCanvasElement>();
 const radarChart = ref<HTMLCanvasElement>();
+const rankingResults = ref<RankingResult[]>([]);
+const calculating = ref(false);
+const pageError = ref("");
 
-const rankingResults = ref<RankingResult[]>([
-  {
-    projectId: "1",
-    projectName: "Sistema de Gestão ERP",
-    sValue: 0.234,
-    rValue: 0.156,
-    qValue: 0.189,
-    rank: 1,
-    isAcceptable: true,
-  },
-  {
-    projectId: "2",
-    projectName: "Aplicativo Mobile",
-    sValue: 0.445,
-    rValue: 0.289,
-    qValue: 0.367,
-    rank: 2,
-    isAcceptable: true,
-  },
-  {
-    projectId: "3",
-    projectName: "Portal Web E-commerce",
-    sValue: 0.567,
-    rValue: 0.334,
-    qValue: 0.445,
-    rank: 3,
-    isAcceptable: false,
-  },
-]);
+let barChartInstance: Chart | null = null;
+let radarChartInstance: Chart | null = null;
 
-const calculateRanking = () => {
-  alert("Calculando ranking VIKOR...");
-  // This would trigger the backend calculation
+const calculateRanking = async () => {
+  calculating.value = true;
+  pageError.value = "";
+  try {
+    const results = await getVikorRanking();
+    rankingResults.value = results
+      .slice()
+      .sort((a, b) => a.rank - b.rank)
+      .map((r) => ({
+        projectId: r.project.id,
+        projectName: r.project.name,
+        sValue: r.sValue,
+        rValue: r.rValue,
+        qValue: r.qValue,
+        rank: r.rank,
+        isAcceptable: r.isAcceptable,
+      }));
+    await nextTick();
+    createBarChart();
+    createRadarChart();
+  } catch {
+    pageError.value =
+      "Erro ao calcular ranking. Verifique se todos os projetos foram avaliados.";
+  } finally {
+    calculating.value = false;
+  }
 };
 
-const createBarChart = () => {
-  if (!barChart.value) return;
+const PALETTE_BG = [
+  "rgba(34,197,94,0.8)",
+  "rgba(59,130,246,0.8)",
+  "rgba(239,68,68,0.8)",
+  "rgba(234,179,8,0.8)",
+  "rgba(168,85,247,0.8)",
+  "rgba(20,184,166,0.8)",
+];
+const PALETTE_BORDER = PALETTE_BG.map((c) => c.replace("0.8", "1"));
+const RADAR_BG = PALETTE_BG.map((c) => c.replace("0.8", "0.2"));
 
+function createBarChart() {
+  if (!barChart.value) return;
+  if (barChartInstance) {
+    barChartInstance.destroy();
+    barChartInstance = null;
+  }
   const ctx = barChart.value.getContext("2d");
   if (!ctx) return;
-
-  new Chart(ctx, {
+  const n = rankingResults.value.length;
+  barChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels: rankingResults.value.map((r) => r.projectName),
@@ -312,16 +333,8 @@ const createBarChart = () => {
         {
           label: "Valor Q",
           data: rankingResults.value.map((r) => r.qValue),
-          backgroundColor: [
-            "rgba(34, 197, 94, 0.8)",
-            "rgba(59, 130, 246, 0.8)",
-            "rgba(239, 68, 68, 0.8)",
-          ],
-          borderColor: [
-            "rgba(34, 197, 94, 1)",
-            "rgba(59, 130, 246, 1)",
-            "rgba(239, 68, 68, 1)",
-          ],
+          backgroundColor: PALETTE_BG.slice(0, n),
+          borderColor: PALETTE_BORDER.slice(0, n),
           borderWidth: 1,
         },
       ],
@@ -330,80 +343,48 @@ const createBarChart = () => {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        title: {
-          display: true,
-          text: "Valores Q dos Projetos",
-        },
-        legend: {
-          display: false,
-        },
+        title: { display: true, text: "Valores Q dos Projetos" },
+        legend: { display: false },
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 1,
-        },
-      },
+      scales: { y: { beginAtZero: true, max: 1 } },
     },
   });
-};
+}
 
-const createRadarChart = () => {
+function createRadarChart() {
   if (!radarChart.value) return;
-
+  if (radarChartInstance) {
+    radarChartInstance.destroy();
+    radarChartInstance = null;
+  }
   const ctx = radarChart.value.getContext("2d");
   if (!ctx) return;
-
-  new Chart(ctx, {
+  radarChartInstance = new Chart(ctx, {
     type: "radar",
     data: {
-      labels: ["Custo", "Tempo", "Qualidade", "ROI"],
-      datasets: rankingResults.value.map((result, index) => ({
-        label: result.projectName,
-        data: [
-          Math.random() * 0.5 + 0.3, // Simulated values
-          Math.random() * 0.5 + 0.3,
-          Math.random() * 0.5 + 0.5,
-          Math.random() * 0.5 + 0.4,
-        ],
-        backgroundColor: [
-          "rgba(34, 197, 94, 0.2)",
-          "rgba(59, 130, 246, 0.2)",
-          "rgba(239, 68, 68, 0.2)",
-        ][index],
-        borderColor: [
-          "rgba(34, 197, 94, 1)",
-          "rgba(59, 130, 246, 1)",
-          "rgba(239, 68, 68, 1)",
-        ][index],
+      labels: ["S Value", "R Value", "Q Value", "Score"],
+      datasets: rankingResults.value.map((r, i) => ({
+        label: r.projectName,
+        data: [r.sValue, r.rValue, r.qValue, +(1 - r.qValue).toFixed(3)],
+        backgroundColor: RADAR_BG[i % RADAR_BG.length],
+        borderColor: PALETTE_BORDER[i % PALETTE_BORDER.length],
         borderWidth: 2,
       })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: "Desempenho por Critério",
-        },
-      },
-      scales: {
-        r: {
-          beginAtZero: true,
-          max: 1,
-        },
-      },
+      plugins: { title: { display: true, text: "Desempenho por Critério" } },
+      scales: { r: { beginAtZero: true, max: 1 } },
     },
   });
-};
+}
 
 const exportResults = (format: "pdf" | "excel") => {
   alert(`Exportando resultados em formato ${format.toUpperCase()}...`);
 };
 
 onMounted(() => {
-  createBarChart();
-  createRadarChart();
+  calculateRanking();
 });
 </script>

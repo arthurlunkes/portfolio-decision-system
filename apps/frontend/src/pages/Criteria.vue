@@ -339,59 +339,42 @@ import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppInput from "@/components/ui/AppInput.vue";
 import { useAuthStore } from "@/stores/auth";
-import { ref, computed } from "vue";
+import {
+  createCriterion as apiCreate,
+  deleteCriterion as apiDelete,
+  getCriteria,
+  updateCriterion as apiUpdate,
+} from "@/services/api/criteria";
+import type { Criterion } from "@/services/api/criteria";
+import { ref, computed, onMounted } from "vue";
 
 const authStore = useAuthStore();
 
-interface Criterion {
-  id: string;
-  name: string;
-  description: string;
-  weight: number;
-  type: "BENEFIT" | "COST";
-}
-
 const showAddModal = ref(false);
 const showEditModal = ref(false);
+const loading = ref(false);
+const pageError = ref("");
 
 const criterionForm = ref({
   id: "",
   name: "",
   description: "",
-  weight: 10,
+  weight: "10",
   type: "BENEFIT" as "BENEFIT" | "COST",
 });
 
-const criteria = ref<Criterion[]>([
-  {
-    id: "1",
-    name: "Custo de Desenvolvimento",
-    description: "Custo total de desenvolvimento do projeto",
-    weight: 25,
-    type: "COST",
-  },
-  {
-    id: "2",
-    name: "Tempo de Entrega",
-    description: "Prazo estimado para entrega do projeto",
-    weight: 20,
-    type: "COST",
-  },
-  {
-    id: "3",
-    name: "Qualidade Técnica",
-    description: "Qualidade técnica e arquitetura da solução",
-    weight: 30,
-    type: "BENEFIT",
-  },
-  {
-    id: "4",
-    name: "Retorno sobre Investimento",
-    description: "ROI esperado do projeto",
-    weight: 25,
-    type: "BENEFIT",
-  },
-]);
+const criteria = ref<Criterion[]>([]);
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    criteria.value = await getCriteria();
+  } catch {
+    pageError.value = "Erro ao carregar critérios.";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const totalWeight = computed(() => {
   return criteria.value.reduce((sum, criterion) => sum + criterion.weight, 0);
@@ -402,37 +385,47 @@ const isWeightValid = computed(() => {
 });
 
 const editCriterion = (criterion: Criterion) => {
-  criterionForm.value = { ...criterion };
+  criterionForm.value = { ...criterion, weight: String(criterion.weight) };
   showEditModal.value = true;
 };
 
-const deleteCriterion = (criterion: Criterion) => {
+const deleteCriterion = async (criterion: Criterion) => {
   if (
-    confirm(`Tem certeza que deseja excluir o critério "${criterion.name}"?`)
-  ) {
+    !confirm(`Tem certeza que deseja excluir o critério "${criterion.name}"?`)
+  )
+    return;
+  try {
+    await apiDelete(criterion.id);
     criteria.value = criteria.value.filter((c) => c.id !== criterion.id);
+  } catch {
+    pageError.value = "Erro ao excluir critério.";
   }
 };
 
-const saveCriterion = () => {
-  if (showEditModal.value) {
-    const index = criteria.value.findIndex(
-      (c) => c.id === criterionForm.value.id,
-    );
-    if (index !== -1) {
-      criteria.value[index] = { ...criterionForm.value };
+const saveCriterion = async () => {
+  try {
+    if (showEditModal.value) {
+      const updated = await apiUpdate(criterionForm.value.id, {
+        name: criterionForm.value.name,
+        description: criterionForm.value.description,
+        weight: Number(criterionForm.value.weight),
+        type: criterionForm.value.type,
+      });
+      const idx = criteria.value.findIndex((c) => c.id === updated.id);
+      if (idx !== -1) criteria.value[idx] = updated;
+    } else {
+      const created = await apiCreate({
+        name: criterionForm.value.name,
+        description: criterionForm.value.description,
+        weight: Number(criterionForm.value.weight),
+        type: criterionForm.value.type,
+      });
+      criteria.value.push(created);
     }
-  } else {
-    const newCriterion: Criterion = {
-      id: Date.now().toString(),
-      name: criterionForm.value.name,
-      description: criterionForm.value.description,
-      weight: criterionForm.value.weight,
-      type: criterionForm.value.type,
-    };
-    criteria.value.push(newCriterion);
+    closeModal();
+  } catch {
+    pageError.value = "Erro ao salvar critério.";
   }
-  closeModal();
 };
 
 const closeModal = () => {
@@ -442,7 +435,7 @@ const closeModal = () => {
     id: "",
     name: "",
     description: "",
-    weight: 10,
+    weight: "10",
     type: "BENEFIT",
   };
 };

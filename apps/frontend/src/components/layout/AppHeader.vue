@@ -81,6 +81,7 @@ withDefaults(
       { to: "/criteria", label: "Critérios" },
       { to: "/evaluations", label: "Avaliações" },
       { to: "/results", label: "Resultados" },
+      { to: "/users", label: "Decisores" },
     ],
   },
 );

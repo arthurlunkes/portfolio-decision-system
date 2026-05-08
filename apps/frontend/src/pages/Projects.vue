@@ -206,20 +206,22 @@ import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppInput from "@/components/ui/AppInput.vue";
 import { useAuthStore } from "@/stores/auth";
-import { ref, computed } from "vue";
+import {
+  createProject as apiCreate,
+  deleteProject as apiDelete,
+  getProjects,
+  updateProject as apiUpdate,
+} from "@/services/api/projects";
+import type { Project } from "@/services/api/projects";
+import { ref, computed, onMounted } from "vue";
 
 const authStore = useAuthStore();
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-}
 
 const searchTerm = ref("");
 const showAddModal = ref(false);
 const showEditModal = ref(false);
+const loading = ref(false);
+const pageError = ref("");
 
 const projectForm = ref({
   id: "",
@@ -228,27 +230,18 @@ const projectForm = ref({
   createdAt: "",
 });
 
-const projects = ref<Project[]>([
-  {
-    id: "1",
-    name: "Sistema de Gestão ERP",
-    description:
-      "Desenvolvimento de sistema ERP integrado para gestão empresarial",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Aplicativo Mobile",
-    description: "Aplicativo mobile para gestão de tarefas e produtividade",
-    createdAt: "2024-01-20",
-  },
-  {
-    id: "3",
-    name: "Portal Web E-commerce",
-    description: "Desenvolvimento de plataforma de e-commerce B2B",
-    createdAt: "2024-01-25",
-  },
-]);
+const projects = ref<Project[]>([]);
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    projects.value = await getProjects();
+  } catch {
+    pageError.value = "Erro ao carregar projetos.";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const filteredProjects = computed(() => {
   if (!searchTerm.value) return projects.value;
@@ -270,33 +263,37 @@ const editProject = (project: Project) => {
   showEditModal.value = true;
 };
 
-const deleteProject = (project: Project) => {
-  if (confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`)) {
+const deleteProject = async (project: Project) => {
+  if (!confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`))
+    return;
+  try {
+    await apiDelete(project.id);
     projects.value = projects.value.filter((p) => p.id !== project.id);
+  } catch {
+    pageError.value = "Erro ao excluir projeto.";
   }
 };
 
-const saveProject = () => {
-  if (showEditModal.value) {
-    const index = projects.value.findIndex(
-      (p) => p.id === projectForm.value.id,
-    );
-    if (index !== -1) {
-      projects.value[index] = {
-        ...projects.value[index],
-        ...projectForm.value,
-      };
+const saveProject = async () => {
+  try {
+    if (showEditModal.value) {
+      const updated = await apiUpdate(projectForm.value.id, {
+        name: projectForm.value.name,
+        description: projectForm.value.description,
+      });
+      const idx = projects.value.findIndex((p) => p.id === updated.id);
+      if (idx !== -1) projects.value[idx] = updated;
+    } else {
+      const created = await apiCreate({
+        name: projectForm.value.name,
+        description: projectForm.value.description,
+      });
+      projects.value.push(created);
     }
-  } else {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: projectForm.value.name,
-      description: projectForm.value.description,
-      createdAt: new Date().toISOString().split("T")[0] ?? "",
-    };
-    projects.value.push(newProject);
+    closeModal();
+  } catch {
+    pageError.value = "Erro ao salvar projeto.";
   }
-  closeModal();
 };
 
 const closeModal = () => {

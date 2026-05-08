@@ -4,6 +4,7 @@ import Evaluations from '@/pages/Evaluations.vue'
 import Login from '@/pages/Login.vue'
 import Projects from '@/pages/Projects.vue'
 import Results from '@/pages/Results.vue'
+import Users from '@/pages/Users.vue'
 import { isSessionExpired } from '@/stores/auth'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -45,6 +46,12 @@ const routes = [
     path: '/results',
     name: 'Results',
     component: Results,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: Users,
     meta: { requiresAuth: true }
   }
 ]

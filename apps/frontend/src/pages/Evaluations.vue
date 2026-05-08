@@ -198,7 +198,11 @@
 import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import { useAuthStore } from "@/stores/auth";
-import { ref, computed } from "vue";
+import { getProjects } from "@/services/api/projects";
+import { getCriteria } from "@/services/api/criteria";
+import { getEvaluations, createEvaluation } from "@/services/api/evaluations";
+import type { Evaluation as ApiEvaluation } from "@/services/api/evaluations";
+import { ref, computed, onMounted } from "vue";
 
 const authStore = useAuthStore();
 
@@ -207,7 +211,6 @@ interface Project {
   name: string;
   description: string;
 }
-
 interface Criterion {
   id: string;
   name: string;
@@ -215,67 +218,18 @@ interface Criterion {
   weight: number;
   type: "BENEFIT" | "COST";
 }
-
-interface Evaluation {
+interface LocalEval {
   projectId: string;
   criterionId: string;
   linguisticTerm: string;
-  fuzzyValue?: number;
-  label?: string;
-  alpha?: number;
 }
 
 const selectedProject = ref<Project | null>(null);
-
-const projects = ref<Project[]>([
-  {
-    id: "1",
-    name: "Sistema de Gestão ERP",
-    description:
-      "Desenvolvimento de sistema ERP integrado para gestão empresarial",
-  },
-  {
-    id: "2",
-    name: "Aplicativo Mobile",
-    description: "Aplicativo mobile para gestão de tarefas e produtividade",
-  },
-  {
-    id: "3",
-    name: "Portal Web E-commerce",
-    description: "Desenvolvimento de plataforma de e-commerce B2B",
-  },
-]);
-
-const criteria = ref<Criterion[]>([
-  {
-    id: "1",
-    name: "Custo de Desenvolvimento",
-    description: "Custo total de desenvolvimento do projeto",
-    weight: 25,
-    type: "COST",
-  },
-  {
-    id: "2",
-    name: "Tempo de Entrega",
-    description: "Prazo estimado para entrega do projeto",
-    weight: 20,
-    type: "COST",
-  },
-  {
-    id: "3",
-    name: "Qualidade Técnica",
-    description: "Qualidade técnica e arquitetura da solução",
-    weight: 30,
-    type: "BENEFIT",
-  },
-  {
-    id: "4",
-    name: "Retorno sobre Investimento",
-    description: "ROI esperado do projeto",
-    weight: 25,
-    type: "BENEFIT",
-  },
-]);
+const projects = ref<Project[]>([]);
+const criteria = ref<Criterion[]>([]);
+const evaluations = ref<LocalEval[]>([]);
+const saving = ref(false);
+const pageError = ref("");
 
 const linguisticTerms = [
   { value: "very-low", label: "Muito Baixo" },
@@ -287,7 +241,24 @@ const linguisticTerms = [
   { value: "very-high", label: "Muito Alto" },
 ];
 
-const evaluations = ref<Evaluation[]>([]);
+onMounted(async () => {
+  try {
+    const [p, c, e] = await Promise.all([
+      getProjects(),
+      getCriteria(),
+      getEvaluations(),
+    ]);
+    projects.value = p;
+    criteria.value = c;
+    evaluations.value = e.map((ev: ApiEvaluation) => ({
+      projectId: ev.project.id,
+      criterionId: ev.criterion.id,
+      linguisticTerm: ev.linguisticTerm,
+    }));
+  } catch {
+    pageError.value = "Erro ao carregar dados.";
+  }
+});
 
 const completedEvaluations = computed(() => {
   if (!selectedProject.value) return 0;
@@ -300,31 +271,27 @@ const selectProject = (project: Project) => {
   selectedProject.value = project;
 };
 
-const getEvaluation = (projectId: string, criterionId: string) => {
-  return evaluations.value.find(
+const getEvaluation = (projectId: string, criterionId: string) =>
+  evaluations.value.find(
     (e) => e.projectId === projectId && e.criterionId === criterionId,
   );
-};
 
 const getEvaluationStatus = (projectId: string) => {
-  const projectEvaluations = evaluations.value.filter(
+  const count = evaluations.value.filter(
     (e) => e.projectId === projectId,
-  );
-  const totalCriteria = criteria.value.length;
-  return `${projectEvaluations.length} de ${totalCriteria} critérios avaliados`;
+  ).length;
+  return `${count} de ${criteria.value.length} critérios avaliados`;
 };
 
 const evaluateCriterion = (criterionId: string, linguisticTerm: string) => {
   if (!selectedProject.value) return;
-
-  const existingEvaluation = evaluations.value.find(
+  const existing = evaluations.value.find(
     (e) =>
       e.projectId === selectedProject.value!.id &&
       e.criterionId === criterionId,
   );
-
-  if (existingEvaluation) {
-    existingEvaluation.linguisticTerm = linguisticTerm;
+  if (existing) {
+    existing.linguisticTerm = linguisticTerm;
   } else {
     evaluations.value.push({
       projectId: selectedProject.value.id,
@@ -334,8 +301,28 @@ const evaluateCriterion = (criterionId: string, linguisticTerm: string) => {
   }
 };
 
-const saveEvaluations = () => {
-  alert("Avaliações salvas com sucesso!");
-  selectedProject.value = null;
+const saveEvaluations = async () => {
+  if (!selectedProject.value) return;
+  saving.value = true;
+  pageError.value = "";
+  try {
+    const projectEvals = evaluations.value.filter(
+      (e) => e.projectId === selectedProject.value!.id,
+    );
+    await Promise.all(
+      projectEvals.map((e) =>
+        createEvaluation({
+          projectId: e.projectId,
+          criterionId: e.criterionId,
+          linguisticTerm: e.linguisticTerm,
+        }),
+      ),
+    );
+    selectedProject.value = null;
+  } catch {
+    pageError.value = "Erro ao salvar avaliações.";
+  } finally {
+    saving.value = false;
+  }
 };
 </script>
