@@ -163,11 +163,14 @@
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
+            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1"
           >
-            Desempenho por Critério
+            Desempenho Comparativo
           </h3>
-          <div class="h-64">
+          <p class="text-xs text-gray-500 mb-4">
+            Indicadores normalizados por projeto. Quanto maior, melhor.
+          </p>
+          <div class="h-80">
             <canvas ref="radarChart" />
           </div>
         </div>
@@ -220,26 +223,21 @@
 </template>
 
 <script setup lang="ts">
-import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
-import { useAuthStore } from "@/stores/auth";
+import AppButton from "@/components/ui/AppButton.vue";
 import { getVikorRanking } from "@/services/api/results";
-import { ref, onMounted, nextTick } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import {
-  Chart,
   BarController,
   BarElement,
   CategoryScale,
+  Chart,
+  Legend,
   LinearScale,
   Title,
   Tooltip,
-  Legend,
-  RadarController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
 } from "chart.js";
+import { nextTick, onMounted, ref } from "vue";
 
 const authStore = useAuthStore();
 
@@ -251,11 +249,6 @@ Chart.register(
   Title,
   Tooltip,
   Legend,
-  RadarController,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
 );
 
 interface RankingResult {
@@ -314,14 +307,21 @@ const PALETTE_BG = [
   "rgba(20,184,166,0.8)",
 ];
 const PALETTE_BORDER = PALETTE_BG.map((c) => c.replace("0.8", "1"));
-const RADAR_BG = PALETTE_BG.map((c) => c.replace("0.8", "0.2"));
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-function normalizeLowerIsBetter(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) {
+function normalizeLowerIsBetter(
+  value: number,
+  min: number,
+  max: number,
+): number {
+  if (
+    !Number.isFinite(value) ||
+    !Number.isFinite(min) ||
+    !Number.isFinite(max)
+  ) {
     return 0;
   }
   if (max === min) {
@@ -385,28 +385,77 @@ function createRadarChart() {
   const qMin = Math.min(...qValues);
   const qMax = Math.max(...qValues);
 
+  const normalizedRows = rankingResults.value.map((result) => ({
+    projectName: result.projectName,
+    sScore: +normalizeLowerIsBetter(result.sValue, sMin, sMax).toFixed(3),
+    rScore: +normalizeLowerIsBetter(result.rValue, rMin, rMax).toFixed(3),
+    qScore: +normalizeLowerIsBetter(result.qValue, qMin, qMax).toFixed(3),
+    finalScore: +clamp01(1 - result.qValue).toFixed(3),
+  }));
+
   radarChartInstance = new Chart(ctx, {
-    type: "radar",
+    type: "bar",
     data: {
-      labels: ["S (normalizado)", "R (normalizado)", "Q (normalizado)", "Score"],
-      datasets: rankingResults.value.map((r, i) => ({
-        label: r.projectName,
-        data: [
-          +normalizeLowerIsBetter(r.sValue, sMin, sMax).toFixed(3),
-          +normalizeLowerIsBetter(r.rValue, rMin, rMax).toFixed(3),
-          +normalizeLowerIsBetter(r.qValue, qMin, qMax).toFixed(3),
-          +clamp01(1 - r.qValue).toFixed(3),
-        ],
-        backgroundColor: RADAR_BG[i % RADAR_BG.length],
-        borderColor: PALETTE_BORDER[i % PALETTE_BORDER.length],
-        borderWidth: 2,
-      })),
+      labels: normalizedRows.map((row) => row.projectName),
+      datasets: [
+        {
+          label: "S",
+          data: normalizedRows.map((row) => row.sScore),
+          backgroundColor: "rgba(34,197,94,0.75)",
+          borderColor: "rgba(34,197,94,1)",
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+        {
+          label: "R",
+          data: normalizedRows.map((row) => row.rScore),
+          backgroundColor: "rgba(59,130,246,0.75)",
+          borderColor: "rgba(59,130,246,1)",
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+        {
+          label: "Q",
+          data: normalizedRows.map((row) => row.qScore),
+          backgroundColor: "rgba(245,158,11,0.75)",
+          borderColor: "rgba(245,158,11,1)",
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+        {
+          label: "Score final",
+          data: normalizedRows.map((row) => row.finalScore),
+          backgroundColor: "rgba(99,102,241,0.75)",
+          borderColor: "rgba(99,102,241,1)",
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { title: { display: true, text: "Desempenho por Critério" } },
-      scales: { r: { beginAtZero: true, max: 1 } },
+      indexAxis: "y",
+      plugins: {
+        title: { display: true, text: "Desempenho Normalizado por Projeto" },
+        legend: { position: "top" },
+        tooltip: {
+          callbacks: {
+            label: (context) =>
+              `${context.dataset.label}: ${Number(context.raw).toFixed(3)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 1,
+          grid: { color: "rgba(148,163,184,0.18)" },
+        },
+        y: {
+          grid: { display: false },
+        },
+      },
     },
   });
 }
