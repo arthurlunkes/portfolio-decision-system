@@ -316,6 +316,20 @@ const PALETTE_BG = [
 const PALETTE_BORDER = PALETTE_BG.map((c) => c.replace("0.8", "1"));
 const RADAR_BG = PALETTE_BG.map((c) => c.replace("0.8", "0.2"));
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function normalizeLowerIsBetter(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) {
+    return 0;
+  }
+  if (max === min) {
+    return 1;
+  }
+  return clamp01((max - value) / (max - min));
+}
+
 function createBarChart() {
   if (!barChart.value) return;
   if (barChartInstance) {
@@ -359,13 +373,30 @@ function createRadarChart() {
   }
   const ctx = radarChart.value.getContext("2d");
   if (!ctx) return;
+
+  const sValues = rankingResults.value.map((r) => r.sValue);
+  const rValues = rankingResults.value.map((r) => r.rValue);
+  const qValues = rankingResults.value.map((r) => r.qValue);
+
+  const sMin = Math.min(...sValues);
+  const sMax = Math.max(...sValues);
+  const rMin = Math.min(...rValues);
+  const rMax = Math.max(...rValues);
+  const qMin = Math.min(...qValues);
+  const qMax = Math.max(...qValues);
+
   radarChartInstance = new Chart(ctx, {
     type: "radar",
     data: {
-      labels: ["S Value", "R Value", "Q Value", "Score"],
+      labels: ["S (normalizado)", "R (normalizado)", "Q (normalizado)", "Score"],
       datasets: rankingResults.value.map((r, i) => ({
         label: r.projectName,
-        data: [r.sValue, r.rValue, r.qValue, +(1 - r.qValue).toFixed(3)],
+        data: [
+          +normalizeLowerIsBetter(r.sValue, sMin, sMax).toFixed(3),
+          +normalizeLowerIsBetter(r.rValue, rMin, rMax).toFixed(3),
+          +normalizeLowerIsBetter(r.qValue, qMin, qMax).toFixed(3),
+          +clamp01(1 - r.qValue).toFixed(3),
+        ],
         backgroundColor: RADAR_BG[i % RADAR_BG.length],
         borderColor: PALETTE_BORDER[i % PALETTE_BORDER.length],
         borderWidth: 2,

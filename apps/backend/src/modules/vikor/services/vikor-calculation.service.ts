@@ -20,8 +20,22 @@ export class VIKORCalculationService {
     weights: number[],
     criterionTypes: CriterionType[]
   ): VIKORResult[] {
+    if (decisionMatrix.length === 0) {
+      return [];
+    }
+
+    if (decisionMatrix[0].length === 0) {
+      return [];
+    }
+
     const numAlternatives = decisionMatrix.length;
     const numCriteria = decisionMatrix[0].length;
+
+    for (const row of decisionMatrix) {
+      if (row.length !== numCriteria) {
+        throw new Error('Decision matrix rows must have the same number of criteria');
+      }
+    }
 
     if (weights.length !== numCriteria) {
       throw new Error('Number of weights must match number of criteria');
@@ -76,10 +90,13 @@ export class VIKORCalculationService {
     for (let i = 0; i < numAlternatives; i++) {
       let sum = 0;
       for (let j = 0; j < weights.length; j++) {
-        const normalizedDiff = Math.abs(fStar[j] - decisionMatrix[i][j]) / Math.abs(fStar[j] - fMinus[j]);
+        const normalizedDiff = this.safeNormalize(
+          Math.abs(fStar[j] - decisionMatrix[i][j]),
+          Math.abs(fStar[j] - fMinus[j])
+        );
         sum += weights[j] * normalizedDiff;
       }
-      sValues[i] = sum;
+      sValues[i] = this.toFinite(sum);
     }
 
     return sValues;
@@ -97,10 +114,13 @@ export class VIKORCalculationService {
     for (let i = 0; i < numAlternatives; i++) {
       const weightedDiffs = [];
       for (let j = 0; j < weights.length; j++) {
-        const normalizedDiff = Math.abs(fStar[j] - decisionMatrix[i][j]) / Math.abs(fStar[j] - fMinus[j]);
+        const normalizedDiff = this.safeNormalize(
+          Math.abs(fStar[j] - decisionMatrix[i][j]),
+          Math.abs(fStar[j] - fMinus[j])
+        );
         weightedDiffs.push(weights[j] * normalizedDiff);
       }
-      rValues[i] = Math.max(...weightedDiffs);
+      rValues[i] = this.toFinite(Math.max(...weightedDiffs));
     }
 
     return rValues;
@@ -116,9 +136,10 @@ export class VIKORCalculationService {
     const qValues: number[] = [];
 
     for (let i = 0; i < sValues.length; i++) {
-      const q = v * ((sValues[i] - sStar) / (sMinus - sStar)) + 
-                (1 - v) * ((rValues[i] - rStar) / (rMinus - rStar));
-      qValues[i] = q;
+      const sTerm = this.safeNormalize(sValues[i] - sStar, sMinus - sStar);
+      const rTerm = this.safeNormalize(rValues[i] - rStar, rMinus - rStar);
+      const q = v * sTerm + (1 - v) * rTerm;
+      qValues[i] = this.toFinite(q);
     }
 
     return qValues;
@@ -158,5 +179,21 @@ export class VIKORCalculationService {
     const acceptableAdvantage = secondQ - firstQ >= 1 / (sortedIndices.length - 1);
     
     return acceptableAdvantage;
+  }
+
+  private safeNormalize(numerator: number, denominator: number): number {
+    if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) {
+      return 0;
+    }
+
+    if (denominator === 0) {
+      return 0;
+    }
+
+    return numerator / denominator;
+  }
+
+  private toFinite(value: number): number {
+    return Number.isFinite(value) ? value : 0;
   }
 }

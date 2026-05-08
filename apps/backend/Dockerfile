@@ -20,5 +20,6 @@ COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
 COPY --from=deps /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=deps /app/package.json ./package.json
+RUN chmod +x ./apps/backend/docker-entrypoint.sh
 EXPOSE 4000
-CMD ["sh", "-c", "./node_modules/.bin/prisma generate --schema ./apps/backend/prisma/schema.prisma && ./node_modules/.bin/prisma db push --schema ./apps/backend/prisma/schema.prisma && ./node_modules/.bin/tsx watch ./apps/backend/src/index.ts"]
+CMD ["./apps/backend/docker-entrypoint.sh"]

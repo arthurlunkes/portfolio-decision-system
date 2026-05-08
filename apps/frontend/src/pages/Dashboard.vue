@@ -11,6 +11,13 @@
         </p>
       </div>
 
+      <div
+        v-if="pageError"
+        class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ pageError }}
+      </div>
+
       <!-- Cards de estatísticas -->
       <section>
         <h2
@@ -99,7 +106,7 @@
         >
           <div
             v-for="(result, i) in recentResults"
-            :key="result.name"
+            :key="result.projectId"
             :class="[
               'flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors',
               i !== recentResults.length - 1 && 'border-b border-gray-50',
@@ -142,43 +149,122 @@
 import ActionCard from "@/components/ui/ActionCard.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import StatCard from "@/components/ui/StatCard.vue";
+import { getCriteria } from "@/services/api/criteria";
+import { getEvaluations } from "@/services/api/evaluations";
+import { getProjects } from "@/services/api/projects";
+import { getVikorRanking } from "@/services/api/results";
 import { useAuthStore } from "@/stores/auth";
 import { onMounted, ref } from "vue";
 
 const authStore = useAuthStore();
 
 const stats = ref({
-  projects: 12,
-  criteria: 8,
-  pendingEvaluations: 3,
-  lastRankingDate: "Hoje",
+  projects: 0,
+  criteria: 0,
+  pendingEvaluations: 0,
+  lastRankingDate: "Sem ranking",
 });
 
-const recentResults = ref([
-  {
-    rank: 1,
-    name: "Projeto Alpha",
-    score: "0.85",
-    badge: "Excelente",
-    badgeClass: "bg-green-100 text-green-700",
-  },
-  {
-    rank: 2,
-    name: "Projeto Beta",
-    score: "0.72",
-    badge: "Bom",
-    badgeClass: "bg-blue-100 text-blue-700",
-  },
-  {
-    rank: 3,
-    name: "Projeto Gamma",
-    score: "0.61",
+const loading = ref(false);
+const pageError = ref("");
+
+const recentResults = ref<
+  Array<{
+    projectId: string;
+    rank: number;
+    name: string;
+    score: string;
+    badge: string;
+    badgeClass: string;
+  }>
+>([]);
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function buildBadge(score: number, isAcceptable: boolean): {
+  badge: string;
+  badgeClass: string;
+} {
+  if (!isAcceptable) {
+    return {
+      badge: "Não aceitável",
+      badgeClass: "bg-red-100 text-red-700",
+    };
+  }
+
+  if (score >= 0.8) {
+    return {
+      badge: "Excelente",
+      badgeClass: "bg-green-100 text-green-700",
+    };
+  }
+
+  if (score >= 0.6) {
+    return {
+      badge: "Bom",
+      badgeClass: "bg-blue-100 text-blue-700",
+    };
+  }
+
+  return {
     badge: "Regular",
     badgeClass: "bg-amber-100 text-amber-700",
-  },
-]);
+  };
+}
+
+async function loadDashboard() {
+  loading.value = true;
+  pageError.value = "";
+
+  try {
+    const [projects, criteria, evaluations, ranking] = await Promise.all([
+      getProjects(),
+      getCriteria(),
+      getEvaluations(),
+      getVikorRanking(),
+    ]);
+
+    const totalPossibleEvaluations = projects.length * criteria.length;
+    const pendingEvaluations = Math.max(
+      0,
+      totalPossibleEvaluations - evaluations.length,
+    );
+
+    stats.value = {
+      projects: projects.length,
+      criteria: criteria.length,
+      pendingEvaluations,
+      lastRankingDate: ranking.length > 0 ? "Hoje" : "Sem ranking",
+    };
+
+    recentResults.value = ranking
+      .slice()
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, 5)
+      .map((result) => {
+        const score = clamp01(1 - result.qValue);
+        const badge = buildBadge(score, result.isAcceptable);
+
+        return {
+          projectId: result.project.id,
+          rank: result.rank,
+          name: result.project.name,
+          score: score.toFixed(2),
+          badge: badge.badge,
+          badgeClass: badge.badgeClass,
+        };
+      });
+  } catch {
+    pageError.value =
+      "Não foi possível carregar os dados da dashboard agora. Tente novamente em instantes.";
+  } finally {
+    loading.value = false;
+  }
+}
 
 onMounted(() => {
-  // carregar dados do dashboard
+  loadDashboard();
 });
 </script>
