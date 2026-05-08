@@ -15,6 +15,9 @@ dist-ssr
 apps/backend/.env
 apps/frontend/.env
 
+# Yarn local state
+.yarn/install-state.gz
+
 # Editor directories and files
 .DS_Store
 *.suo
