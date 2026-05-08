@@ -1,11 +1,16 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { createServer } from 'http';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import bcrypt from 'bcryptjs';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import { createServer } from 'http';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
+import prisma from './core/config/database.config.js';
 
 dotenv.config();
 
@@ -13,21 +18,105 @@ const app = express();
 const httpServer = createServer(app);
 
 const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean);
 
-app.use(cors());
-app.use(express.json());
+const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(254),
+  password: z.string().min(8).max(128),
+});
 
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body || {};
-  const validEmails = new Set(['admin@local', 'admin']);
-  const isValid = validEmails.has(String(email)) && String(password) === 'admin';
-  if (!isValid) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+function sanitizeUser(user: {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}
+
+async function ensureDefaultAdminUser() {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword || adminPassword.length < 12) {
+    console.warn('[auth] ADMIN_PASSWORD missing or too short; default admin user will not be created.');
+    return;
   }
-  const user = { id: '1', name: 'Administrador', email: 'admin@local', role: 'ADMIN' };
-  const secret = process.env.JWT_SECRET || 'dev-secret';
-  const token = jwt.sign({ sub: user.id, email: user.email, role: user.role }, secret, { expiresIn: '7d' });
-  return res.json({ token, user });
+
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@local').trim().toLowerCase();
+  const adminName = (process.env.ADMIN_NAME || 'Administrador').trim();
+
+  const existingUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (existingUser) {
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(adminPassword, 12);
+  await prisma.user.create({
+    data: {
+      name: adminName,
+      email: adminEmail,
+      passwordHash,
+      role: 'ADMIN',
+    },
+  });
+
+  console.log(`[auth] default admin user created for ${adminEmail}`);
+}
+
+app.set('trust proxy', 1);
+app.use(helmet());
+app.use(
+  cors({
+    origin: ALLOWED_ORIGINS.length > 0 ? ALLOWED_ORIGINS : true,
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: '100kb' }));
+
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts. Try again later.' },
+});
+
+app.post('/api/auth/login', loginRateLimiter, async (req, res) => {
+  const parsedPayload = loginSchema.safeParse(req.body);
+  if (!parsedPayload.success) {
+    return res.status(400).json({ message: 'Invalid request payload' });
+  }
+
+  const { email, password } = parsedPayload.data;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatches) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const safeUser = sanitizeUser(user);
+    const token = jwt.sign({ sub: safeUser.id, email: safeUser.email, role: safeUser.role }, JWT_SECRET, {
+      expiresIn: '12h',
+      issuer: 'portfolio-backend',
+      audience: 'portfolio-frontend',
+    });
+
+    return res.json({ token, user: safeUser });
+  } catch (error) {
+    console.error('[auth] login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 const typeDefs = `
@@ -146,6 +235,7 @@ const server = new ApolloServer({
 });
 
 async function startServer() {
+  await ensureDefaultAdminUser();
   await server.start();
   app.use('/graphql', expressMiddleware(server));
   httpServer.listen(PORT, () => {
@@ -155,4 +245,15 @@ async function startServer() {
 
 startServer().catch((error) => {
   console.error('Error starting server:', error);
+  process.exit(1);
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });

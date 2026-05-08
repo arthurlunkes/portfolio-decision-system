@@ -35,6 +35,10 @@
           </div>
         </div>
 
+        <div v-if="inactivityWarning" class="text-amber-600 text-sm text-center bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          Sua sessão expirou por inatividade. Por favor, faça login novamente.
+        </div>
+
         <div v-if="error" class="text-red-600 text-sm text-center">
           {{ error }}
         </div>
@@ -54,17 +58,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const inactivityWarning = ref(route.query.reason === 'inactivity')
 
 const handleLogin = async () => {
   loading.value = true

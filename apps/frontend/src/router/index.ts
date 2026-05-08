@@ -1,10 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Login from '@/pages/Login.vue'
-import Dashboard from '@/pages/Dashboard.vue'
-import Projects from '@/pages/Projects.vue'
 import Criteria from '@/pages/Criteria.vue'
+import Dashboard from '@/pages/Dashboard.vue'
 import Evaluations from '@/pages/Evaluations.vue'
+import Login from '@/pages/Login.vue'
+import Projects from '@/pages/Projects.vue'
 import Results from '@/pages/Results.vue'
+import { isSessionExpired } from '@/stores/auth'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
@@ -54,11 +55,19 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('token')
-  
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  const token = sessionStorage.getItem('auth.token')
+  const authenticated = !!token && !isSessionExpired()
+
+  if (!authenticated && token) {
+    // Token present but session expired — clean up
+    sessionStorage.removeItem('auth.token')
+    sessionStorage.removeItem('auth.user')
+    sessionStorage.removeItem('auth.lastActivity')
+  }
+
+  if (to.meta.requiresAuth && !authenticated) {
     next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
+  } else if (to.path === '/login' && authenticated) {
     next('/dashboard')
   } else {
     next()
