@@ -6,7 +6,9 @@
     ]"
   >
     <component :is="icon" class="w-5 h-5 shrink-0 mt-0.5" />
-    <span><slot /></span>
+    <span
+      ><slot>{{ message }}</slot></span
+    >
   </div>
 </template>
 
@@ -16,6 +18,7 @@ import { computed, h } from "vue";
 const props = withDefaults(
   defineProps<{
     variant?: "info" | "warning" | "error" | "success";
+    message?: string;
   }>(),
   { variant: "info" },
 );

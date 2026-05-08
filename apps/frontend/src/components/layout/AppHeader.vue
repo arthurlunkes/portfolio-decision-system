@@ -32,12 +32,29 @@
         </nav>
 
         <!-- Actions -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <slot name="actions" />
+
+          <!-- User avatar / profile link -->
+          <RouterLink
+            v-if="showLogout && authUser"
+            to="/profile"
+            class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-gray-100 transition-colors duration-150"
+            :title="authUser.name"
+          >
+            <AppAvatar :name="authUser.name" size="sm" />
+            <span
+              class="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate"
+            >
+              {{ authUser.name }}
+            </span>
+          </RouterLink>
+
           <button
             v-if="showLogout"
             type="button"
             class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-150"
+            title="Sair"
             @click="$emit('logout')"
           >
             <svg
@@ -62,9 +79,16 @@
 </template>
 
 <script setup lang="ts">
+import AppAvatar from "@/components/ui/AppAvatar.vue";
+import { useAuthStore } from "@/stores/auth";
+import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 const $route = useRoute();
+const authStore = useAuthStore();
+const authUser = computed(
+  () => authStore.user as { name: string; email: string } | null,
+);
 
 withDefaults(
   defineProps<{

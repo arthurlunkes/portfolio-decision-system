@@ -1,84 +1,91 @@
-import Criteria from '@/pages/Criteria.vue'
-import Dashboard from '@/pages/Dashboard.vue'
-import Evaluations from '@/pages/Evaluations.vue'
-import Login from '@/pages/Login.vue'
-import Projects from '@/pages/Projects.vue'
-import Results from '@/pages/Results.vue'
-import Users from '@/pages/Users.vue'
-import { isSessionExpired } from '@/stores/auth'
-import { createRouter, createWebHistory } from 'vue-router'
+import Criteria from "@/pages/Criteria.vue";
+import Dashboard from "@/pages/Dashboard.vue";
+import Evaluations from "@/pages/Evaluations.vue";
+import Login from "@/pages/Login.vue";
+import Profile from "@/pages/Profile.vue";
+import Projects from "@/pages/Projects.vue";
+import Results from "@/pages/Results.vue";
+import Users from "@/pages/Users.vue";
+import { isSessionExpired } from "@/stores/auth";
+import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
   {
-    path: '/login',
-    name: 'Login',
-    component: Login
+    path: "/login",
+    name: "Login",
+    component: Login,
   },
   {
-    path: '/',
-    redirect: '/dashboard'
+    path: "/",
+    redirect: "/dashboard",
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
+    path: "/dashboard",
+    name: "Dashboard",
     component: Dashboard,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/projects',
-    name: 'Projects',
+    path: "/projects",
+    name: "Projects",
     component: Projects,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/criteria',
-    name: 'Criteria',
+    path: "/criteria",
+    name: "Criteria",
     component: Criteria,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/evaluations',
-    name: 'Evaluations',
+    path: "/evaluations",
+    name: "Evaluations",
     component: Evaluations,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/results',
-    name: 'Results',
+    path: "/results",
+    name: "Results",
     component: Results,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
-    path: '/users',
-    name: 'Users',
+    path: "/users",
+    name: "Users",
     component: Users,
-    meta: { requiresAuth: true }
-  }
-]
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: Profile,
+    meta: { requiresAuth: true },
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
 router.beforeEach((to, from, next) => {
-  const token = sessionStorage.getItem('auth.token')
-  const authenticated = !!token && !isSessionExpired()
+  const token = sessionStorage.getItem("auth.token");
+  const authenticated = !!token && !isSessionExpired();
 
   if (!authenticated && token) {
     // Token present but session expired — clean up
-    sessionStorage.removeItem('auth.token')
-    sessionStorage.removeItem('auth.user')
-    sessionStorage.removeItem('auth.lastActivity')
+    sessionStorage.removeItem("auth.token");
+    sessionStorage.removeItem("auth.user");
+    sessionStorage.removeItem("auth.lastActivity");
   }
 
   if (to.meta.requiresAuth && !authenticated) {
-    next('/login')
-  } else if (to.path === '/login' && authenticated) {
-    next('/dashboard')
+    next("/login");
+  } else if (to.path === "/login" && authenticated) {
+    next("/dashboard");
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;
