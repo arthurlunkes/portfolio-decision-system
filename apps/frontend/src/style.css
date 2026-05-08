@@ -9,19 +9,41 @@
 }
 
 @layer components {
+  /* legado — mantidos para compatibilidade */
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-secondary-200 hover:bg-secondary-300 text-secondary-800 font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-200;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow-sm border border-secondary-200 p-6;
   }
-  
+
   .input-field {
     @apply w-full px-3 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors duration-200;
   }
+}
+
+/* Transições de modal */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Slide up suave para seções que aparecem */
+.slide-up-enter-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
 }

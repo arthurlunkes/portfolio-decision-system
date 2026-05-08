@@ -1,253 +1,341 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
-          <div class="flex items-center space-x-4">
-            <button
-              @click="$router.push('/dashboard')"
-              class="text-gray-500 hover:text-gray-700"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <h1 class="text-2xl font-bold text-gray-900">Avaliações</h1>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader @logout="authStore.logout()" />
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <!-- Page title -->
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Avaliações</h1>
+        <p class="text-sm text-gray-500 mt-0.5">
+          Avalie os projetos com termos linguísticos por critério
+        </p>
+      </div>
+
       <!-- Project Selection -->
-      <div class="card mb-8">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Selecionar Projeto</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2
+          class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
+        >
+          Selecionar Projeto
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <button
             v-for="project in projects"
             :key="project.id"
+            type="button"
+            class="group text-left p-4 rounded-xl border-2 transition-all duration-150"
+            :class="
+              selectedProject?.id === project.id
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-100 hover:border-gray-200 bg-gray-50/50'
+            "
             @click="selectProject(project)"
-            class="border rounded-lg p-4 cursor-pointer transition-all"
-            :class="selectedProject?.id === project.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
           >
-            <h4 class="font-medium text-gray-900">{{ project.name }}</h4>
-            <p class="text-sm text-gray-500 mt-1">{{ project.description }}</p>
-            <div class="mt-3">
-              <span class="text-xs text-gray-400">
-                {{ getEvaluationStatus(project.id) }}
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="font-semibold text-gray-900 text-sm">
+                {{ project.name }}
+              </h4>
+              <span
+                v-if="selectedProject?.id === project.id"
+                class="shrink-0 w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center mt-0.5"
+              >
+                <svg
+                  class="w-2.5 h-2.5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </span>
             </div>
-          </div>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+              {{ project.description }}
+            </p>
+            <p
+              class="text-xs font-medium mt-2"
+              :class="
+                selectedProject?.id === project.id
+                  ? 'text-primary-600'
+                  : 'text-gray-400'
+              "
+            >
+              {{ getEvaluationStatus(project.id) }}
+            </p>
+          </button>
         </div>
       </div>
 
       <!-- Criteria Evaluation -->
-      <div v-if="selectedProject" class="card">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-lg font-medium text-gray-900">
-            Avaliar: {{ selectedProject.name }}
-          </h3>
-          <div class="text-sm text-gray-500">
-            {{ completedEvaluations }} de {{ criteria.length }} critérios avaliados
+      <Transition name="slide-up">
+        <div v-if="selectedProject" class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-bold text-gray-900">
+                Avaliar: {{ selectedProject.name }}
+              </h2>
+              <p class="text-sm text-gray-400 mt-0.5">
+                {{ completedEvaluations }} de {{ criteria.length }} critérios
+                avaliados
+              </p>
+            </div>
+            <!-- Progress bar -->
+            <div class="hidden sm:flex items-center gap-3 min-w-[180px]">
+              <div
+                class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+              >
+                <div
+                  class="h-1.5 bg-primary-500 rounded-full transition-all duration-300"
+                  :style="{
+                    width: (completedEvaluations / criteria.length) * 100 + '%',
+                  }"
+                />
+              </div>
+              <span class="text-xs font-semibold text-gray-500"
+                >{{
+                  Math.round((completedEvaluations / criteria.length) * 100)
+                }}%</span
+              >
+            </div>
           </div>
-        </div>
 
-        <div class="space-y-6">
           <div
             v-for="criterion in criteria"
             :key="criterion.id"
-            class="border border-gray-200 rounded-lg p-4"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"
           >
-            <div class="flex justify-between items-start mb-3">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
               <div>
-                <h4 class="font-medium text-gray-900">{{ criterion.name }}</h4>
-                <p class="text-sm text-gray-500">{{ criterion.description }}</p>
-                <div class="mt-1">
-                  <span 
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="criterion.type === 'BENEFIT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h4 class="font-semibold text-gray-900">
+                    {{ criterion.name }}
+                  </h4>
+                  <span
+                    class="px-2 py-0.5 text-xs font-semibold rounded-full"
+                    :class="
+                      criterion.type === 'BENEFIT'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    "
+                    >{{
+                      criterion.type === "BENEFIT" ? "Benefício" : "Custo"
+                    }}</span
                   >
-                    {{ criterion.type === 'BENEFIT' ? 'Benefício' : 'Custo' }}
-                  </span>
-                  <span class="ml-2 text-xs text-gray-500">Peso: {{ criterion.weight }}%</span>
+                  <span class="text-xs text-gray-400"
+                    >Peso: {{ criterion.weight }}%</span
+                  >
                 </div>
+                <p class="text-sm text-gray-500 mt-0.5">
+                  {{ criterion.description }}
+                </p>
               </div>
-              <div v-if="getEvaluation(selectedProject.id, criterion.id)" class="text-right">
-                <div class="text-sm text-gray-500">Avaliado como</div>
-                <div class="font-medium text-gray-900">
-                  {{ getEvaluation(selectedProject.id, criterion.id)?.linguisticTerm }}
-                </div>
-              </div>
+              <span
+                v-if="getEvaluation(selectedProject.id, criterion.id)"
+                class="px-3 py-1 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full"
+              >
+                ✓
+                {{
+                  getEvaluation(selectedProject.id, criterion.id)
+                    ?.linguisticTerm
+                }}
+              </span>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               <button
                 v-for="term in linguisticTerms"
                 :key="term.value"
+                type="button"
+                class="py-2.5 px-2 text-xs font-medium rounded-xl border-2 transition-all duration-150 text-center"
+                :class="
+                  getEvaluation(selectedProject.id, criterion.id)
+                    ?.linguisticTerm === term.value
+                    ? 'border-primary-500 bg-primary-50 text-primary-700'
+                    : 'border-gray-100 bg-gray-50 hover:border-gray-200 text-gray-600 hover:text-gray-900'
+                "
                 @click="evaluateCriterion(criterion.id, term.value)"
-                class="p-3 text-sm border rounded-lg transition-all"
-                :class="getEvaluation(selectedProject.id, criterion.id)?.linguisticTerm === term.value
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-700'"
               >
                 {{ term.label }}
               </button>
             </div>
           </div>
-        </div>
 
-        <div class="mt-8 flex justify-between">
-          <button
-            @click="selectedProject = null"
-            class="btn-secondary"
-          >
-            Voltar
-          </button>
-          <button
-            @click="saveEvaluations"
-            :disabled="completedEvaluations !== criteria.length"
-            class="btn-primary"
-          >
-            Salvar Avaliações
-          </button>
+          <div class="flex justify-between pt-2">
+            <AppButton variant="secondary" @click="selectedProject = null">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Voltar
+            </AppButton>
+            <AppButton
+              variant="primary"
+              :disabled="completedEvaluations !== criteria.length"
+              @click="saveEvaluations"
+            >
+              Salvar Avaliações
+            </AppButton>
+          </div>
         </div>
-      </div>
+      </Transition>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import AppButton from "@/components/ui/AppButton.vue";
+import AppHeader from "@/components/layout/AppHeader.vue";
+import { useAuthStore } from "@/stores/auth";
+import { ref, computed } from "vue";
+
+const authStore = useAuthStore();
 
 interface Project {
-  id: string
-  name: string
-  description: string
+  id: string;
+  name: string;
+  description: string;
 }
 
 interface Criterion {
-  id: string
-  name: string
-  description: string
-  weight: number
-  type: 'BENEFIT' | 'COST'
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+  type: "BENEFIT" | "COST";
 }
 
 interface Evaluation {
-  projectId: string
-  criterionId: string
-  linguisticTerm: string
-  fuzzyValue?: number
-  label?: string
-  alpha?: number
+  projectId: string;
+  criterionId: string;
+  linguisticTerm: string;
+  fuzzyValue?: number;
+  label?: string;
+  alpha?: number;
 }
 
-const selectedProject = ref<Project | null>(null)
+const selectedProject = ref<Project | null>(null);
 
 const projects = ref<Project[]>([
   {
-    id: '1',
-    name: 'Sistema de Gestão ERP',
-    description: 'Desenvolvimento de sistema ERP integrado para gestão empresarial'
+    id: "1",
+    name: "Sistema de Gestão ERP",
+    description:
+      "Desenvolvimento de sistema ERP integrado para gestão empresarial",
   },
   {
-    id: '2',
-    name: 'Aplicativo Mobile',
-    description: 'Aplicativo mobile para gestão de tarefas e produtividade'
+    id: "2",
+    name: "Aplicativo Mobile",
+    description: "Aplicativo mobile para gestão de tarefas e produtividade",
   },
   {
-    id: '3',
-    name: 'Portal Web E-commerce',
-    description: 'Desenvolvimento de plataforma de e-commerce B2B'
-  }
-])
+    id: "3",
+    name: "Portal Web E-commerce",
+    description: "Desenvolvimento de plataforma de e-commerce B2B",
+  },
+]);
 
 const criteria = ref<Criterion[]>([
   {
-    id: '1',
-    name: 'Custo de Desenvolvimento',
-    description: 'Custo total de desenvolvimento do projeto',
+    id: "1",
+    name: "Custo de Desenvolvimento",
+    description: "Custo total de desenvolvimento do projeto",
     weight: 25,
-    type: 'COST'
+    type: "COST",
   },
   {
-    id: '2',
-    name: 'Tempo de Entrega',
-    description: 'Prazo estimado para entrega do projeto',
+    id: "2",
+    name: "Tempo de Entrega",
+    description: "Prazo estimado para entrega do projeto",
     weight: 20,
-    type: 'COST'
+    type: "COST",
   },
   {
-    id: '3',
-    name: 'Qualidade Técnica',
-    description: 'Qualidade técnica e arquitetura da solução',
+    id: "3",
+    name: "Qualidade Técnica",
+    description: "Qualidade técnica e arquitetura da solução",
     weight: 30,
-    type: 'BENEFIT'
+    type: "BENEFIT",
   },
   {
-    id: '4',
-    name: 'Retorno sobre Investimento',
-    description: 'ROI esperado do projeto',
+    id: "4",
+    name: "Retorno sobre Investimento",
+    description: "ROI esperado do projeto",
     weight: 25,
-    type: 'BENEFIT'
-  }
-])
+    type: "BENEFIT",
+  },
+]);
 
 const linguisticTerms = [
-  { value: 'very-low', label: 'Muito Baixo' },
-  { value: 'low', label: 'Baixo' },
-  { value: 'medium-low', label: 'Médio-Baixo' },
-  { value: 'medium', label: 'Médio' },
-  { value: 'medium-high', label: 'Médio-Alto' },
-  { value: 'high', label: 'Alto' },
-  { value: 'very-high', label: 'Muito Alto' }
-]
+  { value: "very-low", label: "Muito Baixo" },
+  { value: "low", label: "Baixo" },
+  { value: "medium-low", label: "Médio-Baixo" },
+  { value: "medium", label: "Médio" },
+  { value: "medium-high", label: "Médio-Alto" },
+  { value: "high", label: "Alto" },
+  { value: "very-high", label: "Muito Alto" },
+];
 
-const evaluations = ref<Evaluation[]>([])
+const evaluations = ref<Evaluation[]>([]);
 
 const completedEvaluations = computed(() => {
-  if (!selectedProject.value) return 0
-  return evaluations.value.filter(e => e.projectId === selectedProject.value!.id).length
-})
+  if (!selectedProject.value) return 0;
+  return evaluations.value.filter(
+    (e) => e.projectId === selectedProject.value!.id,
+  ).length;
+});
 
 const selectProject = (project: Project) => {
-  selectedProject.value = project
-}
+  selectedProject.value = project;
+};
 
 const getEvaluation = (projectId: string, criterionId: string) => {
-  return evaluations.value.find(e => 
-    e.projectId === projectId && e.criterionId === criterionId
-  )
-}
+  return evaluations.value.find(
+    (e) => e.projectId === projectId && e.criterionId === criterionId,
+  );
+};
 
 const getEvaluationStatus = (projectId: string) => {
-  const projectEvaluations = evaluations.value.filter(e => e.projectId === projectId)
-  const totalCriteria = criteria.value.length
-  return `${projectEvaluations.length} de ${totalCriteria} critérios avaliados`
-}
+  const projectEvaluations = evaluations.value.filter(
+    (e) => e.projectId === projectId,
+  );
+  const totalCriteria = criteria.value.length;
+  return `${projectEvaluations.length} de ${totalCriteria} critérios avaliados`;
+};
 
 const evaluateCriterion = (criterionId: string, linguisticTerm: string) => {
-  if (!selectedProject.value) return
+  if (!selectedProject.value) return;
 
-  const existingEvaluation = evaluations.value.find(e => 
-    e.projectId === selectedProject.value!.id && e.criterionId === criterionId
-  )
+  const existingEvaluation = evaluations.value.find(
+    (e) =>
+      e.projectId === selectedProject.value!.id &&
+      e.criterionId === criterionId,
+  );
 
   if (existingEvaluation) {
-    existingEvaluation.linguisticTerm = linguisticTerm
+    existingEvaluation.linguisticTerm = linguisticTerm;
   } else {
     evaluations.value.push({
       projectId: selectedProject.value.id,
       criterionId,
-      linguisticTerm
-    })
+      linguisticTerm,
+    });
   }
-}
+};
 
 const saveEvaluations = () => {
-  alert('Avaliações salvas com sucesso!')
-  selectedProject.value = null
-}
+  alert("Avaliações salvas com sucesso!");
+  selectedProject.value = null;
+};
 </script>

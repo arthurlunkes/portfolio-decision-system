@@ -1,87 +1,139 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
-          <div class="flex items-center space-x-4">
-            <button
-              @click="$router.push('/dashboard')"
-              class="text-gray-500 hover:text-gray-700"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <h1 class="text-2xl font-bold text-gray-900">Resultados VIKOR</h1>
-          </div>
-          <button
-            @click="calculateRanking"
-            class="btn-primary"
-          >
-            Calcular Ranking
-          </button>
-        </div>
-      </div>
-    </header>
+    <AppHeader @logout="authStore.logout()" />
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <!-- Page title + action -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Resultados VIKOR</h1>
+          <p class="text-sm text-gray-500 mt-0.5">
+            Ranking multicritério baseado no método VIKOR fuzzy
+          </p>
+        </div>
+        <AppButton variant="primary" @click="calculateRanking">
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          Calcular Ranking
+        </AppButton>
+      </div>
+
       <!-- Ranking Table -->
-      <div class="card mb-8">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Ranking VIKOR</h3>
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      >
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2
+            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
+          >
+            Ranking VIKOR
+          </h2>
+        </div>
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <table class="min-w-full">
+            <thead>
+              <tr class="border-b border-gray-100 bg-gray-50/60">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Posição
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Projeto
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Valor S
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Valor R
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Valor Q
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Aceitabilidade
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="(result, index) in rankingResults" :key="result.projectId">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="text-lg font-bold text-gray-900">#{{ index + 1 }}</div>
-                    <div v-if="index === 0" class="ml-2 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
-                      Melhor
+            <tbody class="divide-y divide-gray-50">
+              <tr
+                v-for="(result, index) in rankingResults"
+                :key="result.projectId"
+                class="hover:bg-gray-50/60 transition-colors"
+                :class="index === 0 ? 'bg-amber-50/40' : ''"
+              >
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                      :class="
+                        index === 0
+                          ? 'bg-amber-100 text-amber-700'
+                          : index === 1
+                            ? 'bg-gray-100 text-gray-600'
+                            : 'bg-gray-50 text-gray-500'
+                      "
+                    >
+                      #{{ index + 1 }}
                     </div>
+                    <span
+                      v-if="index === 0"
+                      class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full"
+                      >Melhor</span
+                    >
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{{ result.projectName }}</div>
+                <td class="px-6 py-4">
+                  <span class="font-semibold text-gray-900 text-sm">{{
+                    result.projectName
+                  }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ result.sValue.toFixed(3) }}</div>
+                <td class="px-6 py-4">
+                  <span class="text-sm text-gray-600 font-mono">{{
+                    result.sValue.toFixed(3)
+                  }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ result.rValue.toFixed(3) }}</div>
+                <td class="px-6 py-4">
+                  <span class="text-sm text-gray-600 font-mono">{{
+                    result.rValue.toFixed(3)
+                  }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{{ result.qValue.toFixed(3) }}</div>
+                <td class="px-6 py-4">
+                  <span class="text-sm font-semibold text-gray-900 font-mono">{{
+                    result.qValue.toFixed(3)
+                  }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span 
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="result.isAcceptable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                <td class="px-6 py-4">
+                  <span
+                    class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                    :class="
+                      result.isAcceptable
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    "
                   >
-                    {{ result.isAcceptable ? 'Aceitável' : 'Não Aceitável' }}
+                    {{ result.isAcceptable ? "Aceitável" : "Não Aceitável" }}
                   </span>
                 </td>
               </tr>
@@ -91,40 +143,69 @@
       </div>
 
       <!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Bar Chart -->
-        <div class="card">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Comparação de Valores Q</h3>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3
+            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
+          >
+            Comparação de Valores Q
+          </h3>
           <div class="h-64">
-            <canvas ref="barChart"></canvas>
+            <canvas ref="barChart" />
           </div>
         </div>
-
-        <!-- Radar Chart -->
-        <div class="card">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Desempenho por Critério</h3>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3
+            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
+          >
+            Desempenho por Critério
+          </h3>
           <div class="h-64">
-            <canvas ref="radarChart"></canvas>
+            <canvas ref="radarChart" />
           </div>
         </div>
       </div>
 
-      <!-- Export Options -->
-      <div class="card mt-8">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Exportar Resultados</h3>
-        <div class="flex space-x-4">
-          <button
-            @click="exportResults('pdf')"
-            class="btn-secondary"
-          >
+      <!-- Export -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3
+          class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
+        >
+          Exportar Resultados
+        </h3>
+        <div class="flex flex-wrap gap-3">
+          <AppButton variant="secondary" @click="exportResults('pdf')">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
             Exportar PDF
-          </button>
-          <button
-            @click="exportResults('excel')"
-            class="btn-secondary"
-          >
+          </AppButton>
+          <AppButton variant="secondary" @click="exportResults('excel')">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
             Exportar Excel
-          </button>
+          </AppButton>
         </div>
       </div>
     </main>
@@ -132,7 +213,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import AppButton from "@/components/ui/AppButton.vue";
+import AppHeader from "@/components/layout/AppHeader.vue";
+import { useAuthStore } from "@/stores/auth";
+import { ref, onMounted } from "vue";
 import {
   Chart,
   BarController,
@@ -146,8 +230,10 @@ import {
   RadialLinearScale,
   PointElement,
   LineElement,
-  Filler
-} from 'chart.js'
+  Filler,
+} from "chart.js";
+
+const authStore = useAuthStore();
 
 Chart.register(
   BarController,
@@ -161,82 +247,84 @@ Chart.register(
   RadialLinearScale,
   PointElement,
   LineElement,
-  Filler
-)
+  Filler,
+);
 
 interface RankingResult {
-  projectId: string
-  projectName: string
-  sValue: number
-  rValue: number
-  qValue: number
-  rank: number
-  isAcceptable: boolean
+  projectId: string;
+  projectName: string;
+  sValue: number;
+  rValue: number;
+  qValue: number;
+  rank: number;
+  isAcceptable: boolean;
 }
 
-const barChart = ref<HTMLCanvasElement>()
-const radarChart = ref<HTMLCanvasElement>()
+const barChart = ref<HTMLCanvasElement>();
+const radarChart = ref<HTMLCanvasElement>();
 
 const rankingResults = ref<RankingResult[]>([
   {
-    projectId: '1',
-    projectName: 'Sistema de Gestão ERP',
+    projectId: "1",
+    projectName: "Sistema de Gestão ERP",
     sValue: 0.234,
     rValue: 0.156,
     qValue: 0.189,
     rank: 1,
-    isAcceptable: true
+    isAcceptable: true,
   },
   {
-    projectId: '2',
-    projectName: 'Aplicativo Mobile',
+    projectId: "2",
+    projectName: "Aplicativo Mobile",
     sValue: 0.445,
     rValue: 0.289,
     qValue: 0.367,
     rank: 2,
-    isAcceptable: true
+    isAcceptable: true,
   },
   {
-    projectId: '3',
-    projectName: 'Portal Web E-commerce',
+    projectId: "3",
+    projectName: "Portal Web E-commerce",
     sValue: 0.567,
     rValue: 0.334,
     qValue: 0.445,
     rank: 3,
-    isAcceptable: false
-  }
-])
+    isAcceptable: false,
+  },
+]);
 
 const calculateRanking = () => {
-  alert('Calculando ranking VIKOR...')
+  alert("Calculando ranking VIKOR...");
   // This would trigger the backend calculation
-}
+};
 
 const createBarChart = () => {
-  if (!barChart.value) return
+  if (!barChart.value) return;
 
-  const ctx = barChart.value.getContext('2d')
-  if (!ctx) return
+  const ctx = barChart.value.getContext("2d");
+  if (!ctx) return;
 
   new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels: rankingResults.value.map(r => r.projectName),
-      datasets: [{
-        label: 'Valor Q',
-        data: rankingResults.value.map(r => r.qValue),
-        backgroundColor: [
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(239, 68, 68, 0.8)'
-        ],
-        borderColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(239, 68, 68, 1)'
-        ],
-        borderWidth: 1
-      }]
+      labels: rankingResults.value.map((r) => r.projectName),
+      datasets: [
+        {
+          label: "Valor Q",
+          data: rankingResults.value.map((r) => r.qValue),
+          backgroundColor: [
+            "rgba(34, 197, 94, 0.8)",
+            "rgba(59, 130, 246, 0.8)",
+            "rgba(239, 68, 68, 0.8)",
+          ],
+          borderColor: [
+            "rgba(34, 197, 94, 1)",
+            "rgba(59, 130, 246, 1)",
+            "rgba(239, 68, 68, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -244,52 +332,52 @@ const createBarChart = () => {
       plugins: {
         title: {
           display: true,
-          text: 'Valores Q dos Projetos'
+          text: "Valores Q dos Projetos",
         },
         legend: {
-          display: false
-        }
+          display: false,
+        },
       },
       scales: {
         y: {
           beginAtZero: true,
-          max: 1
-        }
-      }
-    }
-  })
-}
+          max: 1,
+        },
+      },
+    },
+  });
+};
 
 const createRadarChart = () => {
-  if (!radarChart.value) return
+  if (!radarChart.value) return;
 
-  const ctx = radarChart.value.getContext('2d')
-  if (!ctx) return
+  const ctx = radarChart.value.getContext("2d");
+  if (!ctx) return;
 
   new Chart(ctx, {
-    type: 'radar',
+    type: "radar",
     data: {
-      labels: ['Custo', 'Tempo', 'Qualidade', 'ROI'],
+      labels: ["Custo", "Tempo", "Qualidade", "ROI"],
       datasets: rankingResults.value.map((result, index) => ({
         label: result.projectName,
         data: [
           Math.random() * 0.5 + 0.3, // Simulated values
           Math.random() * 0.5 + 0.3,
           Math.random() * 0.5 + 0.5,
-          Math.random() * 0.5 + 0.4
+          Math.random() * 0.5 + 0.4,
         ],
         backgroundColor: [
-          'rgba(34, 197, 94, 0.2)',
-          'rgba(59, 130, 246, 0.2)',
-          'rgba(239, 68, 68, 0.2)'
+          "rgba(34, 197, 94, 0.2)",
+          "rgba(59, 130, 246, 0.2)",
+          "rgba(239, 68, 68, 0.2)",
         ][index],
         borderColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(239, 68, 68, 1)'
+          "rgba(34, 197, 94, 1)",
+          "rgba(59, 130, 246, 1)",
+          "rgba(239, 68, 68, 1)",
         ][index],
-        borderWidth: 2
-      }))
+        borderWidth: 2,
+      })),
     },
     options: {
       responsive: true,
@@ -297,25 +385,25 @@ const createRadarChart = () => {
       plugins: {
         title: {
           display: true,
-          text: 'Desempenho por Critério'
-        }
+          text: "Desempenho por Critério",
+        },
       },
       scales: {
         r: {
           beginAtZero: true,
-          max: 1
-        }
-      }
-    }
-  })
-}
+          max: 1,
+        },
+      },
+    },
+  });
+};
 
-const exportResults = (format: 'pdf' | 'excel') => {
-  alert(`Exportando resultados em formato ${format.toUpperCase()}...`)
-}
+const exportResults = (format: "pdf" | "excel") => {
+  alert(`Exportando resultados em formato ${format.toUpperCase()}...`);
+};
 
 onMounted(() => {
-  createBarChart()
-  createRadarChart()
-})
+  createBarChart();
+  createRadarChart();
+});
 </script>

@@ -1,112 +1,164 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
-          <div class="flex items-center space-x-4">
-            <button
-              @click="$router.push('/dashboard')"
-              class="text-gray-500 hover:text-gray-700"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <h1 class="text-2xl font-bold text-gray-900">Critérios</h1>
-          </div>
-          <button
-            @click="showAddModal = true"
-            class="btn-primary"
+    <AppHeader @logout="authStore.logout()" />
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <!-- Page title + action -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Critérios</h1>
+          <p class="text-sm text-gray-500 mt-0.5">
+            Defina os critérios de avaliação e seus pesos
+          </p>
+        </div>
+        <AppButton variant="primary" @click="showAddModal = true">
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            Adicionar Critério
-          </button>
-        </div>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Adicionar Critério
+        </AppButton>
       </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Weight Validation Alert -->
-      <div v-if="!isWeightValid" class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-yellow-800">Soma dos pesos não é 100%</h3>
-            <p class="text-sm text-yellow-700 mt-1">
-              A soma total dos pesos deve ser igual a 100%. Atual: {{ totalWeight }}%
-            </p>
-          </div>
+      <AppAlert v-if="!isWeightValid" variant="warning">
+        A soma total dos pesos deve ser igual a 100%. Atual:
+        <strong>{{ totalWeight }}%</strong>
+      </AppAlert>
+
+      <!-- Peso total indicador -->
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            class="h-2 rounded-full transition-all duration-300"
+            :class="
+              isWeightValid
+                ? 'bg-green-500'
+                : totalWeight > 100
+                  ? 'bg-red-500'
+                  : 'bg-amber-400'
+            "
+            :style="{ width: Math.min(totalWeight, 100) + '%' }"
+          />
         </div>
+        <span
+          class="text-sm font-semibold"
+          :class="isWeightValid ? 'text-green-600' : 'text-amber-600'"
+        >
+          {{ totalWeight }}% / 100%
+        </span>
       </div>
 
-      <!-- Criteria Table -->
-      <div class="card">
+      <!-- Table card -->
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      >
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <table class="min-w-full">
+            <thead>
+              <tr class="border-b border-gray-100 bg-gray-50/60">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Nome
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Descrição
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Peso
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Tipo
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="criterion in criteria" :key="criterion.id">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{{ criterion.name }}</div>
+            <tbody class="divide-y divide-gray-50">
+              <tr v-if="criteria.length === 0">
+                <td
+                  colspan="5"
+                  class="px-6 py-12 text-center text-sm text-gray-400"
+                >
+                  Nenhum critério cadastrado.
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">{{ criterion.description }}</div>
+              </tr>
+              <tr
+                v-for="criterion in criteria"
+                :key="criterion.id"
+                class="hover:bg-gray-50/60 transition-colors"
+              >
+                <td class="px-6 py-4">
+                  <span class="font-semibold text-gray-900 text-sm">{{
+                    criterion.name
+                  }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                      <div 
-                        class="bg-primary-600 h-2 rounded-full" 
+                <td class="px-6 py-4 max-w-xs">
+                  <span class="text-sm text-gray-500 line-clamp-1">{{
+                    criterion.description
+                  }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+                    >
+                      <div
+                        class="bg-primary-500 h-1.5 rounded-full"
                         :style="{ width: criterion.weight + '%' }"
-                      ></div>
+                      />
                     </div>
-                    <span class="text-sm text-gray-900">{{ criterion.weight }}%</span>
+                    <span class="text-sm font-medium text-gray-700"
+                      >{{ criterion.weight }}%</span
+                    >
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span 
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="criterion.type === 'BENEFIT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                <td class="px-6 py-4">
+                  <span
+                    class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                    :class="
+                      criterion.type === 'BENEFIT'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    "
                   >
-                    {{ criterion.type === 'BENEFIT' ? 'Benefício' : 'Custo' }}
+                    {{ criterion.type === "BENEFIT" ? "Benefício" : "Custo" }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    @click="editCriterion(criterion)"
-                    class="text-primary-600 hover:text-primary-900 mr-3"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    @click="deleteCriterion(criterion)"
-                    class="text-red-600 hover:text-red-900"
-                  >
-                    Excluir
-                  </button>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <AppButton
+                      variant="ghost"
+                      size="sm"
+                      @click="editCriterion(criterion)"
+                      >Editar</AppButton
+                    >
+                    <AppButton
+                      variant="danger"
+                      size="sm"
+                      @click="deleteCriterion(criterion)"
+                      >Excluir</AppButton
+                    >
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -115,174 +167,260 @@
       </div>
     </main>
 
-    <!-- Add/Edit Modal -->
-    <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">
-          {{ showEditModal ? 'Editar Critério' : 'Adicionar Critério' }}
-        </h3>
-        <form @submit.prevent="saveCriterion">
-          <div class="mb-4">
-            <label for="criterionName" class="block text-sm font-medium text-gray-700 mb-2">
-              Nome
-            </label>
-            <input
-              id="criterionName"
-              v-model="criterionForm.name"
-              type="text"
-              required
-              class="input-field"
-            />
-          </div>
-          <div class="mb-4">
-            <label for="criterionDescription" class="block text-sm font-medium text-gray-700 mb-2">
-              Descrição
-            </label>
-            <textarea
-              id="criterionDescription"
-              v-model="criterionForm.description"
-              rows="3"
-              required
-              class="input-field"
-            ></textarea>
-          </div>
-          <div class="mb-4">
-            <label for="criterionWeight" class="block text-sm font-medium text-gray-700 mb-2">
-              Peso (%)
-            </label>
-            <input
-              id="criterionWeight"
-              v-model.number="criterionForm.weight"
-              type="number"
-              min="1"
-              max="100"
-              required
-              class="input-field"
-            />
-          </div>
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Tipo
-            </label>
-            <div class="space-y-2">
-              <label class="inline-flex items-center">
-                <input
-                  v-model="criterionForm.type"
-                  type="radio"
-                  value="BENEFIT"
-                  class="form-radio"
-                />
-                <span class="ml-2">Benefício (quanto maior, melhor)</span>
-              </label>
-              <label class="inline-flex items-center">
-                <input
-                  v-model="criterionForm.type"
-                  type="radio"
-                  value="COST"
-                  class="form-radio"
-                />
-                <span class="ml-2">Custo (quanto menor, melhor)</span>
-              </label>
+    <!-- Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showAddModal || showEditModal"
+          class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          @click.self="closeModal"
+        >
+          <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div
+              class="flex items-center justify-between px-6 py-5 border-b border-gray-100"
+            >
+              <h3 class="text-lg font-bold text-gray-900">
+                {{ showEditModal ? "Editar Critério" : "Novo Critério" }}
+              </h3>
+              <button
+                type="button"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+                @click="closeModal"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
+            <form class="px-6 py-5 space-y-4" @submit.prevent="saveCriterion">
+              <div>
+                <label
+                  for="criterionName"
+                  class="block text-sm font-medium text-gray-700 mb-1.5"
+                  >Nome</label
+                >
+                <AppInput
+                  id="criterionName"
+                  v-model="criterionForm.name"
+                  type="text"
+                  placeholder="Nome do critério"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="criterionDescription"
+                  class="block text-sm font-medium text-gray-700 mb-1.5"
+                  >Descrição</label
+                >
+                <textarea
+                  id="criterionDescription"
+                  v-model="criterionForm.description"
+                  rows="3"
+                  required
+                  placeholder="Descreva o critério..."
+                  class="w-full px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-300 bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                />
+              </div>
+              <div>
+                <label
+                  for="criterionWeight"
+                  class="block text-sm font-medium text-gray-700 mb-1.5"
+                  >Peso (%)</label
+                >
+                <AppInput
+                  id="criterionWeight"
+                  v-model="criterionForm.weight"
+                  type="number"
+                  placeholder="Ex: 25"
+                  required
+                />
+              </div>
+              <div>
+                <p class="block text-sm font-medium text-gray-700 mb-2">Tipo</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <label
+                    class="flex items-center gap-2.5 px-4 py-3 rounded-xl border cursor-pointer transition-all"
+                    :class="
+                      criterionForm.type === 'BENEFIT'
+                        ? 'border-green-400 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    "
+                  >
+                    <input
+                      v-model="criterionForm.type"
+                      type="radio"
+                      value="BENEFIT"
+                      class="sr-only"
+                    />
+                    <span
+                      class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                      :class="
+                        criterionForm.type === 'BENEFIT'
+                          ? 'border-green-500'
+                          : 'border-gray-300'
+                      "
+                    >
+                      <span
+                        v-if="criterionForm.type === 'BENEFIT'"
+                        class="w-2 h-2 rounded-full bg-green-500"
+                      />
+                    </span>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">
+                        Benefício
+                      </p>
+                      <p class="text-xs text-gray-400">Maior = melhor</p>
+                    </div>
+                  </label>
+                  <label
+                    class="flex items-center gap-2.5 px-4 py-3 rounded-xl border cursor-pointer transition-all"
+                    :class="
+                      criterionForm.type === 'COST'
+                        ? 'border-red-400 bg-red-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    "
+                  >
+                    <input
+                      v-model="criterionForm.type"
+                      type="radio"
+                      value="COST"
+                      class="sr-only"
+                    />
+                    <span
+                      class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                      :class="
+                        criterionForm.type === 'COST'
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      "
+                    >
+                      <span
+                        v-if="criterionForm.type === 'COST'"
+                        class="w-2 h-2 rounded-full bg-red-500"
+                      />
+                    </span>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">Custo</p>
+                      <p class="text-xs text-gray-400">Menor = melhor</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div class="flex justify-end gap-3 pt-2">
+                <AppButton type="button" variant="secondary" @click="closeModal"
+                  >Cancelar</AppButton
+                >
+                <AppButton type="submit" variant="primary">
+                  {{ showEditModal ? "Atualizar" : "Adicionar" }}
+                </AppButton>
+              </div>
+            </form>
           </div>
-          <div class="flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="closeModal"
-              class="btn-secondary"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn-primary"
-            >
-              {{ showEditModal ? 'Atualizar' : 'Adicionar' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import AppAlert from "@/components/ui/AppAlert.vue";
+import AppButton from "@/components/ui/AppButton.vue";
+import AppHeader from "@/components/layout/AppHeader.vue";
+import AppInput from "@/components/ui/AppInput.vue";
+import { useAuthStore } from "@/stores/auth";
+import { ref, computed } from "vue";
+
+const authStore = useAuthStore();
 
 interface Criterion {
-  id: string
-  name: string
-  description: string
-  weight: number
-  type: 'BENEFIT' | 'COST'
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+  type: "BENEFIT" | "COST";
 }
 
-const showAddModal = ref(false)
-const showEditModal = ref(false)
+const showAddModal = ref(false);
+const showEditModal = ref(false);
 
 const criterionForm = ref({
-  id: '',
-  name: '',
-  description: '',
+  id: "",
+  name: "",
+  description: "",
   weight: 10,
-  type: 'BENEFIT' as 'BENEFIT' | 'COST'
-})
+  type: "BENEFIT" as "BENEFIT" | "COST",
+});
 
 const criteria = ref<Criterion[]>([
   {
-    id: '1',
-    name: 'Custo de Desenvolvimento',
-    description: 'Custo total de desenvolvimento do projeto',
+    id: "1",
+    name: "Custo de Desenvolvimento",
+    description: "Custo total de desenvolvimento do projeto",
     weight: 25,
-    type: 'COST'
+    type: "COST",
   },
   {
-    id: '2',
-    name: 'Tempo de Entrega',
-    description: 'Prazo estimado para entrega do projeto',
+    id: "2",
+    name: "Tempo de Entrega",
+    description: "Prazo estimado para entrega do projeto",
     weight: 20,
-    type: 'COST'
+    type: "COST",
   },
   {
-    id: '3',
-    name: 'Qualidade Técnica',
-    description: 'Qualidade técnica e arquitetura da solução',
+    id: "3",
+    name: "Qualidade Técnica",
+    description: "Qualidade técnica e arquitetura da solução",
     weight: 30,
-    type: 'BENEFIT'
+    type: "BENEFIT",
   },
   {
-    id: '4',
-    name: 'Retorno sobre Investimento',
-    description: 'ROI esperado do projeto',
+    id: "4",
+    name: "Retorno sobre Investimento",
+    description: "ROI esperado do projeto",
     weight: 25,
-    type: 'BENEFIT'
-  }
-])
+    type: "BENEFIT",
+  },
+]);
 
 const totalWeight = computed(() => {
-  return criteria.value.reduce((sum, criterion) => sum + criterion.weight, 0)
-})
+  return criteria.value.reduce((sum, criterion) => sum + criterion.weight, 0);
+});
 
 const isWeightValid = computed(() => {
-  return totalWeight.value === 100
-})
+  return totalWeight.value === 100;
+});
 
 const editCriterion = (criterion: Criterion) => {
-  criterionForm.value = { ...criterion }
-  showEditModal.value = true
-}
+  criterionForm.value = { ...criterion };
+  showEditModal.value = true;
+};
 
 const deleteCriterion = (criterion: Criterion) => {
-  if (confirm(`Tem certeza que deseja excluir o critério "${criterion.name}"?`)) {
-    criteria.value = criteria.value.filter(c => c.id !== criterion.id)
+  if (
+    confirm(`Tem certeza que deseja excluir o critério "${criterion.name}"?`)
+  ) {
+    criteria.value = criteria.value.filter((c) => c.id !== criterion.id);
   }
-}
+};
 
 const saveCriterion = () => {
   if (showEditModal.value) {
-    const index = criteria.value.findIndex(c => c.id === criterionForm.value.id)
+    const index = criteria.value.findIndex(
+      (c) => c.id === criterionForm.value.id,
+    );
     if (index !== -1) {
-      criteria.value[index] = { ...criterionForm.value }
+      criteria.value[index] = { ...criterionForm.value };
     }
   } else {
     const newCriterion: Criterion = {
@@ -290,22 +428,22 @@ const saveCriterion = () => {
       name: criterionForm.value.name,
       description: criterionForm.value.description,
       weight: criterionForm.value.weight,
-      type: criterionForm.value.type
-    }
-    criteria.value.push(newCriterion)
+      type: criterionForm.value.type,
+    };
+    criteria.value.push(newCriterion);
   }
-  closeModal()
-}
+  closeModal();
+};
 
 const closeModal = () => {
-  showAddModal.value = false
-  showEditModal.value = false
+  showAddModal.value = false;
+  showEditModal.value = false;
   criterionForm.value = {
-    id: '',
-    name: '',
-    description: '',
+    id: "",
+    name: "",
+    description: "",
     weight: 10,
-    type: 'BENEFIT'
-  }
-}
+    type: "BENEFIT",
+  };
+};
 </script>
