@@ -12,6 +12,7 @@
           </p>
         </div>
         <AppButton variant="primary" @click="showAddModal = true">
+          Adicionar Critério
           <svg
             class="w-4 h-4"
             fill="none"
@@ -25,7 +26,6 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Adicionar Critério
         </AppButton>
       </div>
 
@@ -440,3 +440,4 @@ const closeModal = () => {
   };
 };
 </script>
+

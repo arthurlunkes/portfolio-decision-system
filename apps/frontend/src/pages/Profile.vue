@@ -88,6 +88,42 @@
             />
           </FormField>
 
+          <FormField label="Papel">
+            <div class="grid grid-cols-3 gap-2">
+              <label
+                v-for="role in roles"
+                :key="role.value"
+                class="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 cursor-pointer transition-all"
+                :class="
+                  profileForm.role === role.value
+                    ? role.activeClass
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                "
+              >
+                <input
+                  v-model="profileForm.role"
+                  type="radio"
+                  :value="role.value"
+                  class="sr-only"
+                />
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    :d="role.icon"
+                  />
+                </svg>
+                <span class="text-xs font-semibold">{{ role.label }}</span>
+              </label>
+            </div>
+          </FormField>
+
           <div class="flex justify-end gap-3 pt-1">
             <AppButton
               type="button"
@@ -231,7 +267,34 @@ const currentUser = computed(
 const profileForm = ref({
   name: currentUser.value?.name ?? "",
   email: currentUser.value?.email ?? "",
+  role: (currentUser.value?.role ?? "DECISOR") as UserRole,
 });
+
+const roles: {
+  value: UserRole;
+  label: string;
+  icon: string;
+  activeClass: string;
+}[] = [
+  {
+    value: "ADMIN",
+    label: "Admin",
+    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    activeClass: "border-purple-500 bg-purple-50 text-purple-700",
+  },
+  {
+    value: "DECISOR",
+    label: "Decisor",
+    icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+    activeClass: "border-primary-500 bg-primary-50 text-primary-700",
+  },
+  {
+    value: "VIEWER",
+    label: "Visualizador",
+    icon: "M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
+    activeClass: "border-gray-500 bg-gray-100 text-gray-700",
+  },
+];
 
 const profileError = ref("");
 const profileSuccess = ref("");
@@ -241,6 +304,7 @@ const resetProfileForm = () => {
   profileForm.value = {
     name: currentUser.value?.name ?? "",
     email: currentUser.value?.email ?? "",
+    role: (currentUser.value?.role ?? "DECISOR") as UserRole,
   };
   profileError.value = "";
   profileSuccess.value = "";
@@ -256,7 +320,7 @@ const saveProfile = async () => {
     const updated = await updateProfile(currentUser.value.id, {
       name: profileForm.value.name,
       email: profileForm.value.email,
-      role: currentUser.value.role,
+      role: profileForm.value.role,
       active: true,
     });
     authStore.user = updated;

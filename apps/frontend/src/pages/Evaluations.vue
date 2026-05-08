@@ -165,6 +165,7 @@
 
           <div class="flex justify-between pt-2">
             <AppButton variant="secondary" @click="selectedProject = null">
+              Voltar
               <svg
                 class="w-4 h-4"
                 fill="none"
@@ -178,7 +179,6 @@
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Voltar
             </AppButton>
             <AppButton
               variant="primary"
@@ -326,3 +326,4 @@ const saveEvaluations = async () => {
   }
 };
 </script>
+

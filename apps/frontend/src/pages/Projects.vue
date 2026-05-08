@@ -12,6 +12,7 @@
           </p>
         </div>
         <AppButton variant="primary" @click="showAddModal = true">
+          Adicionar Projeto
           <svg
             class="w-4 h-4"
             fill="none"
@@ -25,7 +26,6 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Adicionar Projeto
         </AppButton>
       </div>
 
@@ -202,18 +202,18 @@
 </template>
 
 <script setup lang="ts">
-import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
+import AppButton from "@/components/ui/AppButton.vue";
 import AppInput from "@/components/ui/AppInput.vue";
-import { useAuthStore } from "@/stores/auth";
+import type { Project } from "@/services/api/projects";
 import {
   createProject as apiCreate,
   deleteProject as apiDelete,
-  getProjects,
   updateProject as apiUpdate,
+  getProjects,
 } from "@/services/api/projects";
-import type { Project } from "@/services/api/projects";
-import { ref, computed, onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { computed, onMounted, ref } from "vue";
 
 const authStore = useAuthStore();
 
@@ -255,7 +255,10 @@ const filteredProjects = computed(() => {
 });
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("pt-BR");
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("pt-BR");
 };
 
 const editProject = (project: Project) => {
@@ -307,3 +310,4 @@ const closeModal = () => {
   };
 };
 </script>
+

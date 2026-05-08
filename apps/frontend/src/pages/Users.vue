@@ -14,7 +14,9 @@
       <AppAlert v-if="pageError" variant="error" :message="pageError" />
 
       <!-- Filtros e busca -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4">
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4"
+      >
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="flex-1">
             <AppInput
@@ -43,16 +45,32 @@
       </div>
 
       <!-- Tabela -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+        >
+          <h2
+            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
+          >
             Usuários ({{ filteredUsers.length }})
           </h2>
           <AppButton variant="primary" size="sm" @click="openAddModal">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
             Novo Decisor
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
           </AppButton>
         </div>
 
@@ -60,11 +78,31 @@
           <table class="min-w-full">
             <thead>
               <tr class="border-b border-gray-100 bg-gray-50/60">
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Decisor</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Papel</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Criado em</th>
-                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Acoes</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
+                  Decisor
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
+                  Papel
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
+                  Criado em
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                >
+                  Acoes
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -77,7 +115,9 @@
                   <div class="flex items-center gap-3">
                     <AppAvatar :name="user.name" size="md" />
                     <div>
-                      <p class="text-sm font-semibold text-gray-900">{{ user.name }}</p>
+                      <p class="text-sm font-semibold text-gray-900">
+                        {{ user.name }}
+                      </p>
                       <p class="text-xs text-gray-400">{{ user.email }}</p>
                     </div>
                   </div>
@@ -94,13 +134,18 @@
                       size="sm"
                       @update:model-value="toggleActive(user)"
                     />
-                    <span class="text-xs font-medium" :class="user.active ? 'text-green-600' : 'text-gray-400'">
+                    <span
+                      class="text-xs font-medium"
+                      :class="user.active ? 'text-green-600' : 'text-gray-400'"
+                    >
                       {{ user.active ? "Ativo" : "Inativo" }}
                     </span>
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">{{ formatDate(user.createdAt) }}</span>
+                  <span class="text-sm text-gray-500">{{
+                    formatDate(user.createdAt)
+                  }}</span>
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-1">
@@ -110,8 +155,18 @@
                       title="Editar"
                       @click="openEditModal(user)"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </button>
                     <button
@@ -120,8 +175,18 @@
                       title="Alterar senha"
                       @click="openPasswordModal(user)"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                        />
                       </svg>
                     </button>
                     <button
@@ -130,8 +195,18 @@
                       title="Excluir"
                       @click="confirmDelete(user)"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -139,7 +214,10 @@
               </tr>
 
               <tr v-if="filteredUsers.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-400">
+                <td
+                  colspan="5"
+                  class="px-6 py-12 text-center text-sm text-gray-400"
+                >
                   Nenhum decisor encontrado.
                 </td>
               </tr>
@@ -150,14 +228,26 @@
     </main>
 
     <!-- Modal: Adicionar / Editar decisor -->
-    <AppModal v-model="showUserModal" :title="isEditing ? 'Editar Decisor' : 'Novo Decisor'">
+    <AppModal
+      v-model="showUserModal"
+      :title="isEditing ? 'Editar Decisor' : 'Novo Decisor'"
+    >
       <form class="space-y-4" @submit.prevent="saveUser">
         <FormField label="Nome completo" required>
-          <AppInput v-model="userForm.name" placeholder="Ex.: Joao Silva" required />
+          <AppInput
+            v-model="userForm.name"
+            placeholder="Ex.: Joao Silva"
+            required
+          />
         </FormField>
 
         <FormField label="E-mail" required>
-          <AppInput v-model="userForm.email" type="email" placeholder="joao@empresa.com" required />
+          <AppInput
+            v-model="userForm.email"
+            type="email"
+            placeholder="joao@empresa.com"
+            required
+          />
         </FormField>
 
         <FormField v-if="!isEditing" label="Senha inicial" required>
@@ -173,19 +263,57 @@
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               @click="showPassword = !showPassword"
             >
-              <svg v-if="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+              <svg
+                v-if="showPassword"
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"
+                />
               </svg>
-              <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <svg
+                v-else
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
               </svg>
             </button>
           </div>
         </FormField>
 
-        <FormField label="Papel" required>
-          <div class="grid grid-cols-3 gap-2">
+        <FormField
+          label="Papel"
+          required
+          :hint="
+            !isAdmin && isEditing
+              ? 'Apenas administradores podem alterar o papel de outros usuários.'
+              : undefined
+          "
+        >
+          <div
+            class="grid grid-cols-3 gap-2"
+            :class="{ 'opacity-50 pointer-events-none': !isAdmin && isEditing }"
+          >
             <label
               v-for="role in roles"
               :key="role.value"
@@ -196,16 +324,34 @@
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               "
             >
-              <input v-model="userForm.role" type="radio" :value="role.value" class="sr-only" />
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="role.icon" />
+              <input
+                v-model="userForm.role"
+                type="radio"
+                :value="role.value"
+                class="sr-only"
+                :disabled="!isAdmin && isEditing"
+              />
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  :d="role.icon"
+                />
               </svg>
               <span class="text-xs font-semibold">{{ role.label }}</span>
             </label>
           </div>
         </FormField>
 
-        <div class="flex items-center justify-between py-2 px-4 bg-gray-50 rounded-xl">
+        <div
+          class="flex items-center justify-between py-2 px-4 bg-gray-50 rounded-xl"
+        >
           <div>
             <p class="text-sm font-medium text-gray-700">Ativo</p>
             <p class="text-xs text-gray-400">Permite acesso ao sistema</p>
@@ -214,7 +360,12 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-1">
-          <AppButton type="button" variant="secondary" @click="showUserModal = false">Cancelar</AppButton>
+          <AppButton
+            type="button"
+            variant="secondary"
+            @click="showUserModal = false"
+            >Cancelar</AppButton
+          >
           <AppButton type="submit" variant="primary">
             {{ isEditing ? "Salvar Alteracoes" : "Criar Decisor" }}
           </AppButton>
@@ -224,16 +375,25 @@
 
     <!-- Modal: Alterar senha -->
     <AppModal v-model="showPasswordModal" title="Alterar Senha" size="sm">
-      <div v-if="selectedUser" class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+      <div
+        v-if="selectedUser"
+        class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl"
+      >
         <AppAvatar :name="selectedUser.name" size="sm" />
         <div>
-          <p class="text-sm font-semibold text-gray-900">{{ selectedUser.name }}</p>
+          <p class="text-sm font-semibold text-gray-900">
+            {{ selectedUser.name }}
+          </p>
           <p class="text-xs text-gray-400">{{ selectedUser.email }}</p>
         </div>
       </div>
 
       <AppAlert v-if="passwordError" variant="error" :message="passwordError" />
-      <AppAlert v-if="passwordSuccess" variant="success" :message="passwordSuccess" />
+      <AppAlert
+        v-if="passwordSuccess"
+        variant="success"
+        :message="passwordSuccess"
+      />
 
       <form class="space-y-4" @submit.prevent="savePassword">
         <FormField label="Nova Senha" required>
@@ -253,7 +413,12 @@
           />
         </FormField>
         <div class="flex justify-end gap-3 pt-1">
-          <AppButton type="button" variant="secondary" @click="showPasswordModal = false">Cancelar</AppButton>
+          <AppButton
+            type="button"
+            variant="secondary"
+            @click="showPasswordModal = false"
+            >Cancelar</AppButton
+          >
           <AppButton type="submit" variant="primary">Alterar Senha</AppButton>
         </div>
       </form>
@@ -263,9 +428,21 @@
     <AppModal v-model="showDeleteModal" size="sm">
       <template #title>
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          <div
+            class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0"
+          >
+            <svg
+              class="w-4 h-4 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              />
             </svg>
           </div>
           <span>Excluir Decisor</span>
@@ -274,40 +451,48 @@
 
       <p class="text-sm text-gray-500">
         Tem certeza que deseja excluir
-        <span class="font-semibold text-gray-700">{{ userToDelete?.name }}</span>?
-        Esta acao nao pode ser desfeita.
+        <span class="font-semibold text-gray-700">{{ userToDelete?.name }}</span
+        >? Esta acao nao pode ser desfeita.
       </p>
 
       <div class="flex justify-end gap-3 pt-1">
-        <AppButton type="button" variant="secondary" @click="showDeleteModal = false">Cancelar</AppButton>
-        <AppButton type="button" variant="danger" @click="deleteUser">Excluir</AppButton>
+        <AppButton
+          type="button"
+          variant="secondary"
+          @click="showDeleteModal = false"
+          >Cancelar</AppButton
+        >
+        <AppButton type="button" variant="danger" @click="deleteUser"
+          >Excluir</AppButton
+        >
       </div>
     </AppModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppHeader from "@/components/layout/AppHeader.vue";
 import AppAlert from "@/components/ui/AppAlert.vue";
 import AppAvatar from "@/components/ui/AppAvatar.vue";
 import AppBadge from "@/components/ui/AppBadge.vue";
 import AppButton from "@/components/ui/AppButton.vue";
-import AppHeader from "@/components/layout/AppHeader.vue";
 import AppInput from "@/components/ui/AppInput.vue";
 import AppModal from "@/components/ui/AppModal.vue";
 import AppToggle from "@/components/ui/AppToggle.vue";
 import FormField from "@/components/ui/FormField.vue";
-import { useAuthStore } from "@/stores/auth";
+import type { User, UserRole } from "@/services/api/users";
 import {
   changePassword as apiChangePassword,
   createUser as apiCreate,
   deleteUser as apiDelete,
-  getUsers,
   updateUser as apiUpdate,
+  getUsers,
 } from "@/services/api/users";
-import type { User, UserRole } from "@/services/api/users";
+import { useAuthStore } from "@/stores/auth";
 import { computed, onMounted, ref } from "vue";
 
 const authStore = useAuthStore();
+const isAdmin = computed(() => authStore.user?.role === "ADMIN");
 
 const roles: {
   value: UserRole;
@@ -388,10 +573,12 @@ const filteredUsers = computed(() =>
 );
 
 const roleLabel = (role: UserRole) =>
-  ({ ADMIN: "Administrador", DECISOR: "Decisor", VIEWER: "Visualizador" })[role];
+  ({ ADMIN: "Administrador", DECISOR: "Decisor", VIEWER: "Visualizador" })[
+    role
+  ];
 
 const roleBadgeVariant = (role: UserRole): "purple" | "primary" | "gray" =>
-  ({ ADMIN: "purple", DECISOR: "primary", VIEWER: "gray" } as const)[role];
+  (({ ADMIN: "purple", DECISOR: "primary", VIEWER: "gray" }) as const)[role];
 
 const formatDate = (d: string) => {
   if (!d) return "-";
@@ -402,7 +589,14 @@ const formatDate = (d: string) => {
 
 const openAddModal = () => {
   isEditing.value = false;
-  userForm.value = { id: "", name: "", email: "", password: "", role: "DECISOR", active: true };
+  userForm.value = {
+    id: "",
+    name: "",
+    email: "",
+    password: "",
+    role: "DECISOR",
+    active: true,
+  };
   showPassword.value = false;
   showUserModal.value = true;
 };
@@ -479,7 +673,10 @@ const savePassword = async () => {
 
   try {
     if (!selectedUser.value) return;
-    await apiChangePassword(selectedUser.value.id, passwordForm.value.newPassword);
+    await apiChangePassword(
+      selectedUser.value.id,
+      passwordForm.value.newPassword,
+    );
     passwordSuccess.value = "Senha alterada com sucesso!";
     passwordForm.value = { newPassword: "", confirmPassword: "" };
   } catch (e: any) {
@@ -505,3 +702,4 @@ const deleteUser = async () => {
   }
 };
 </script>
+

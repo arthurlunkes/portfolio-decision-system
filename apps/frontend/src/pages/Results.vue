@@ -12,6 +12,7 @@
           </p>
         </div>
         <AppButton variant="primary" @click="calculateRanking">
+          Calcular Ranking
           <svg
             class="w-4 h-4"
             fill="none"
@@ -25,7 +26,6 @@
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          Calcular Ranking
         </AppButton>
       </div>
 
@@ -168,7 +168,8 @@
             Desempenho Comparativo
           </h3>
           <p class="text-xs text-gray-500 mb-4">
-            Indicadores normalizados por projeto. Quanto maior, melhor.
+            Eixos = projetos · Linhas = métricas VIKOR normalizadas (0–1, quanto
+            maior melhor)
           </p>
           <div class="h-80">
             <canvas ref="radarChart" />
@@ -185,6 +186,7 @@
         </h3>
         <div class="flex flex-wrap gap-3">
           <AppButton variant="secondary" @click="exportResults('pdf')">
+            Exportar PDF
             <svg
               class="w-4 h-4"
               fill="none"
@@ -198,9 +200,9 @@
                 d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
               />
             </svg>
-            Exportar PDF
           </AppButton>
           <AppButton variant="secondary" @click="exportResults('excel')">
+            Exportar Excel
             <svg
               class="w-4 h-4"
               fill="none"
@@ -214,7 +216,6 @@
                 d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            Exportar Excel
           </AppButton>
         </div>
       </div>
@@ -232,8 +233,13 @@ import {
   BarElement,
   CategoryScale,
   Chart,
+  Filler,
   Legend,
   LinearScale,
+  LineElement,
+  PointElement,
+  RadarController,
+  RadialLinearScale,
   Title,
   Tooltip,
 } from "chart.js";
@@ -245,10 +251,15 @@ Chart.register(
   BarController,
   BarElement,
   CategoryScale,
+  Filler,
+  Legend,
   LinearScale,
+  LineElement,
+  PointElement,
+  RadarController,
+  RadialLinearScale,
   Title,
   Tooltip,
-  Legend,
 );
 
 interface RankingResult {
@@ -385,59 +396,71 @@ function createRadarChart() {
   const qMin = Math.min(...qValues);
   const qMax = Math.max(...qValues);
 
-  const normalizedRows = rankingResults.value.map((result) => ({
-    projectName: result.projectName,
-    sScore: +normalizeLowerIsBetter(result.sValue, sMin, sMax).toFixed(3),
-    rScore: +normalizeLowerIsBetter(result.rValue, rMin, rMax).toFixed(3),
-    qScore: +normalizeLowerIsBetter(result.qValue, qMin, qMax).toFixed(3),
-    finalScore: +clamp01(1 - result.qValue).toFixed(3),
-  }));
+  // Spokes = projects, datasets = VIKOR metrics → no overlap between metrics
+  const projectLabels = rankingResults.value.map((r) => r.projectName);
+
+  const sData = rankingResults.value.map(
+    (r) => +normalizeLowerIsBetter(r.sValue, sMin, sMax).toFixed(3),
+  );
+  const rData = rankingResults.value.map(
+    (r) => +normalizeLowerIsBetter(r.rValue, rMin, rMax).toFixed(3),
+  );
+  const qData = rankingResults.value.map(
+    (r) => +normalizeLowerIsBetter(r.qValue, qMin, qMax).toFixed(3),
+  );
+  const scoreData = rankingResults.value.map(
+    (r) => +clamp01(1 - r.qValue).toFixed(3),
+  );
 
   radarChartInstance = new Chart(ctx, {
-    type: "bar",
+    type: "radar",
     data: {
-      labels: normalizedRows.map((row) => row.projectName),
+      labels: projectLabels,
       datasets: [
         {
-          label: "S",
-          data: normalizedRows.map((row) => row.sScore),
-          backgroundColor: "rgba(34,197,94,0.75)",
+          label: "S (menor melhor)",
+          data: sData,
+          backgroundColor: "rgba(34,197,94,0.15)",
           borderColor: "rgba(34,197,94,1)",
-          borderWidth: 1,
-          borderRadius: 6,
+          pointBackgroundColor: "rgba(34,197,94,1)",
+          pointRadius: 4,
+          borderWidth: 2,
         },
         {
-          label: "R",
-          data: normalizedRows.map((row) => row.rScore),
-          backgroundColor: "rgba(59,130,246,0.75)",
+          label: "R (menor melhor)",
+          data: rData,
+          backgroundColor: "rgba(59,130,246,0.15)",
           borderColor: "rgba(59,130,246,1)",
-          borderWidth: 1,
-          borderRadius: 6,
+          pointBackgroundColor: "rgba(59,130,246,1)",
+          pointRadius: 4,
+          borderWidth: 2,
         },
         {
-          label: "Q",
-          data: normalizedRows.map((row) => row.qScore),
-          backgroundColor: "rgba(245,158,11,0.75)",
+          label: "Q (menor melhor)",
+          data: qData,
+          backgroundColor: "rgba(245,158,11,0.15)",
           borderColor: "rgba(245,158,11,1)",
-          borderWidth: 1,
-          borderRadius: 6,
+          pointBackgroundColor: "rgba(245,158,11,1)",
+          pointRadius: 4,
+          borderWidth: 2,
         },
         {
           label: "Score final",
-          data: normalizedRows.map((row) => row.finalScore),
-          backgroundColor: "rgba(99,102,241,0.75)",
+          data: scoreData,
+          backgroundColor: "rgba(99,102,241,0.15)",
           borderColor: "rgba(99,102,241,1)",
-          borderWidth: 1,
-          borderRadius: 6,
+          pointBackgroundColor: "rgba(99,102,241,1)",
+          pointRadius: 4,
+          borderWidth: 2,
+          fill: true,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: "y",
       plugins: {
-        title: { display: true, text: "Desempenho Normalizado por Projeto" },
+        title: { display: true, text: "Desempenho por Projeto (normalizado)" },
         legend: { position: "top" },
         tooltip: {
           callbacks: {
@@ -447,13 +470,17 @@ function createRadarChart() {
         },
       },
       scales: {
-        x: {
+        r: {
           beginAtZero: true,
+          min: 0,
           max: 1,
-          grid: { color: "rgba(148,163,184,0.18)" },
-        },
-        y: {
-          grid: { display: false },
+          ticks: {
+            stepSize: 0.2,
+            backdropColor: "transparent",
+            font: { size: 11 },
+          },
+          grid: { color: "rgba(148,163,184,0.25)" },
+          pointLabels: { font: { size: 12 } },
         },
       },
     },
@@ -468,3 +495,14 @@ onMounted(() => {
   calculateRanking();
 });
 </script>
+
+
+
+
+
+
+
+
+
+
+
