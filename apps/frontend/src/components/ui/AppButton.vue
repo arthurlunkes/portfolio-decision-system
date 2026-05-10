@@ -62,9 +62,9 @@ const variantClasses = computed(
       primary:
         "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white shadow-sm shadow-primary-200 hover:shadow-md hover:shadow-primary-200 focus:ring-primary-500",
       secondary:
-        "bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 border border-gray-200 shadow-sm hover:shadow focus:ring-gray-300",
+        "bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 border border-gray-200 shadow-sm hover:shadow focus:ring-gray-300 dark:bg-slate-900 dark:hover:bg-slate-800 dark:active:bg-slate-700 dark:text-slate-200 dark:border-slate-700 dark:focus:ring-slate-500",
       ghost:
-        "bg-transparent hover:bg-gray-100 active:bg-gray-200 text-gray-600 hover:text-gray-900 focus:ring-gray-300",
+        "bg-transparent hover:bg-gray-100 active:bg-gray-200 text-gray-600 hover:text-gray-900 focus:ring-gray-300 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700 dark:focus:ring-slate-500",
       danger:
         "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-sm focus:ring-red-500",
     })[props.variant],

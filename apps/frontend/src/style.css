@@ -6,6 +6,10 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+
+  html.dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
 }
 
 @layer components {
@@ -46,4 +50,50 @@
 .slide-up-enter-from {
   opacity: 0;
   transform: translateY(8px);
+}
+
+html.dark .bg-white {
+  background-color: rgb(15 23 42 / 0.85) !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: rgb(2 6 23) !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: rgb(30 41 59) !important;
+}
+
+html.dark .border-gray-50,
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: rgb(51 65 85) !important;
+}
+
+html.dark .text-gray-900 {
+  color: rgb(241 245 249) !important;
+}
+
+html.dark .text-gray-800,
+html.dark .text-gray-700,
+html.dark .text-gray-600 {
+  color: rgb(203 213 225) !important;
+}
+
+html.dark .text-gray-500,
+html.dark .text-gray-400,
+html.dark .text-gray-300 {
+  color: rgb(148 163 184) !important;
+}
+
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .hover\:bg-gray-200:hover {
+  background-color: rgb(30 41 59) !important;
+}
+
+html.dark .hover\:text-gray-900:hover,
+html.dark .hover\:text-gray-800:hover {
+  color: rgb(241 245 249) !important;
 }

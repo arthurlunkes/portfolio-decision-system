@@ -71,8 +71,43 @@
     </div>
 
     <!-- Painel direito — formulário -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50">
+    <div
+      class="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 dark:bg-slate-950"
+    >
       <div class="w-full max-w-sm">
+        <div class="flex justify-end mb-4">
+          <div
+            class="inline-flex items-center rounded-xl border border-gray-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
+            role="group"
+            aria-label="Modo de tema"
+          >
+            <button
+              type="button"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
+              :class="
+                !isDark
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100'
+              "
+              @click="setTheme('light')"
+            >
+              Claro
+            </button>
+            <button
+              type="button"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
+              :class="
+                isDark
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100'
+              "
+              @click="setTheme('dark')"
+            >
+              Escuro
+            </button>
+          </div>
+        </div>
+
         <!-- Logo mobile -->
         <div class="flex items-center gap-2 mb-10 lg:hidden">
           <img
@@ -80,13 +115,15 @@
             alt="DecisionPortfólio"
             class="w-8 h-8 rounded-lg object-cover"
           />
-          <span class="font-bold text-gray-900 text-lg">DecisionPortfólio</span>
+          <span class="font-bold text-gray-900 text-lg dark:text-slate-100"
+            >DecisionPortfólio</span
+          >
         </div>
 
-        <h2 class="text-2xl font-bold text-gray-900 mb-1">
+        <h2 class="text-2xl font-bold text-gray-900 mb-1 dark:text-slate-100">
           Bem-vindo de volta
         </h2>
-        <p class="text-gray-500 text-sm mb-8">
+        <p class="text-gray-500 text-sm mb-8 dark:text-slate-400">
           Entre com suas credenciais para continuar
         </p>
 
@@ -102,7 +139,7 @@
           <div>
             <label
               for="email"
-              class="block text-sm font-medium text-gray-700 mb-1.5"
+              class="block text-sm font-medium text-gray-700 mb-1.5 dark:text-slate-300"
               >E-mail</label
             >
             <AppInput
@@ -120,7 +157,7 @@
             <div class="flex items-center justify-between mb-1.5">
               <label
                 for="password"
-                class="block text-sm font-medium text-gray-700"
+                class="block text-sm font-medium text-gray-700 dark:text-slate-300"
                 >Senha</label
               >
             </div>
@@ -136,7 +173,7 @@
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-slate-500 dark:hover:text-slate-300"
                 :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
                 @click="showPassword = !showPassword"
               >
@@ -197,6 +234,7 @@
 import AppAlert from "@/components/ui/AppAlert.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppInput from "@/components/ui/AppInput.vue";
+import { useTheme } from "@/composables/useTheme";
 import { useAuthStore } from "@/stores/auth";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -204,6 +242,7 @@ import { useRoute, useRouter } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const { isDark, setTheme } = useTheme();
 
 const email = ref("");
 const password = ref("");

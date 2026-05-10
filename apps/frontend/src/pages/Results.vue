@@ -226,6 +226,7 @@
 <script setup lang="ts">
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppButton from "@/components/ui/AppButton.vue";
+import { useTheme } from "@/composables/useTheme";
 import { getVikorRanking } from "@/services/api/results";
 import { useAuthStore } from "@/stores/auth";
 import {
@@ -243,9 +244,10 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
+const { isDark } = useTheme();
 
 Chart.register(
   BarController,
@@ -350,6 +352,10 @@ function createBarChart() {
   const ctx = barChart.value.getContext("2d");
   if (!ctx) return;
   const n = rankingResults.value.length;
+  const textColor = isDark.value ? "#cbd5e1" : "#475569";
+  const gridColor = isDark.value
+    ? "rgba(100,116,139,0.25)"
+    : "rgba(148,163,184,0.25)";
   barChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
@@ -368,10 +374,25 @@ function createBarChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        title: { display: true, text: "Valores Q dos Projetos" },
-        legend: { display: false },
+        title: {
+          display: true,
+          text: "Valores Q dos Projetos",
+          color: textColor,
+        },
+        legend: { display: false, labels: { color: textColor } },
       },
-      scales: { y: { beginAtZero: true, max: 1 } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1,
+          ticks: { color: textColor },
+          grid: { color: gridColor },
+        },
+        x: {
+          ticks: { color: textColor },
+          grid: { color: "transparent" },
+        },
+      },
     },
   });
 }
@@ -384,6 +405,7 @@ function createRadarChart() {
   }
   const ctx = radarChart.value.getContext("2d");
   if (!ctx) return;
+  const textColor = isDark.value ? "#cbd5e1" : "#475569";
 
   const sValues = rankingResults.value.map((r) => r.sValue);
   const rValues = rankingResults.value.map((r) => r.rValue);
@@ -460,8 +482,12 @@ function createRadarChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        title: { display: true, text: "Desempenho por Projeto (normalizado)" },
-        legend: { position: "top" },
+        title: {
+          display: true,
+          text: "Desempenho por Projeto (normalizado)",
+          color: textColor,
+        },
+        legend: { position: "top", labels: { color: textColor } },
         tooltip: {
           callbacks: {
             label: (context) =>
@@ -477,10 +503,11 @@ function createRadarChart() {
           ticks: {
             stepSize: 0.2,
             backdropColor: "transparent",
+            color: textColor,
             font: { size: 11 },
           },
           grid: { color: "rgba(148,163,184,0.25)" },
-          pointLabels: { font: { size: 12 } },
+          pointLabels: { color: textColor, font: { size: 12 } },
         },
       },
     },
@@ -494,15 +521,9 @@ const exportResults = (format: "pdf" | "excel") => {
 onMounted(() => {
   calculateRanking();
 });
+
+watch(isDark, () => {
+  createBarChart();
+  createRadarChart();
+});
 </script>
-
-
-
-
-
-
-
-
-
-
-
