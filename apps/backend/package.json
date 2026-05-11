@@ -11,6 +11,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "test": "vitest",
     "test:watch": "vitest --watch",
@@ -41,6 +43,9 @@
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "license": "MIT"
 }

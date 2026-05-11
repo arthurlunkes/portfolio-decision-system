@@ -25,7 +25,12 @@
         />
       </svg>
     </span>
-    <span :class="{ 'opacity-0': loading }">
+    <span
+      :class="[
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap',
+        { 'opacity-0': loading },
+      ]"
+    >
       <slot />
     </span>
   </button>

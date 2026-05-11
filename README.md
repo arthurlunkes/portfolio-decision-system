@@ -29,3 +29,17 @@ Para parar tudo:
 ```bash
 docker compose down
 ```
+
+## Banco de Dados (Migrations e Seed)
+
+No backend, o Prisma agora usa migration versionada e seed idempotente.
+
+Comandos principais:
+
+```bash
+yarn workspace @portfolio/backend db:migrate
+yarn workspace @portfolio/backend db:migrate:deploy
+yarn workspace @portfolio/backend db:seed
+```
+
+No Docker, o entrypoint do backend executa automaticamente `prisma migrate deploy` e `prisma db seed` antes de iniciar a API.

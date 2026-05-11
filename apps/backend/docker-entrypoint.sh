@@ -47,6 +47,7 @@ END
 $$;
 SQL
 
-./node_modules/.bin/prisma db push --accept-data-loss --schema "$SCHEMA_PATH"
+./node_modules/.bin/prisma migrate deploy --schema "$SCHEMA_PATH"
+./node_modules/.bin/prisma db seed --schema "$SCHEMA_PATH"
 
 exec ./node_modules/.bin/tsx watch ./apps/backend/src/index.ts

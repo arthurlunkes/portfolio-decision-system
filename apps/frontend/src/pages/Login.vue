@@ -72,42 +72,9 @@
 
     <!-- Painel direito — formulário -->
     <div
-      class="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 dark:bg-slate-950"
+      class="relative flex-1 flex items-center justify-center px-6 py-12 bg-gray-50 dark:bg-slate-950"
     >
       <div class="w-full max-w-sm">
-        <div class="flex justify-end mb-4">
-          <div
-            class="inline-flex items-center rounded-xl border border-gray-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
-            role="group"
-            aria-label="Modo de tema"
-          >
-            <button
-              type="button"
-              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
-              :class="
-                !isDark
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100'
-              "
-              @click="setTheme('light')"
-            >
-              Claro
-            </button>
-            <button
-              type="button"
-              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
-              :class="
-                isDark
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100'
-              "
-              @click="setTheme('dark')"
-            >
-              Escuro
-            </button>
-          </div>
-        </div>
-
         <!-- Logo mobile -->
         <div class="flex items-center gap-2 mb-10 lg:hidden">
           <img
@@ -226,6 +193,45 @@
           </AppButton>
         </form>
       </div>
+
+      <div class="absolute left-6 bottom-6">
+        <AppButton
+          type="button"
+          variant="primary"
+          :aria-label="isDark ? 'Ativar modo claro' : 'Ativar modo escuro'"
+          @click="toggleTheme"
+        >
+          {{ isDark ? "Modo Claro" : "Modo Escuro" }}
+          <svg
+            v-if="isDark"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 7.05 5.636 5.636m12.728 0-1.414 1.414M7.05 16.95l-1.414 1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+          <svg
+            v-else
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646a9.003 9.003 0 1011.708 11.708z"
+            />
+          </svg>
+        </AppButton>
+      </div>
     </div>
   </div>
 </template>
@@ -242,7 +248,7 @@ import { useRoute, useRouter } from "vue-router";
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
-const { isDark, setTheme } = useTheme();
+const { isDark, toggleTheme } = useTheme();
 
 const email = ref("");
 const password = ref("");
