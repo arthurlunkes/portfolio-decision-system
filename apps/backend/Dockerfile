@@ -20,6 +20,7 @@ COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
 COPY --from=deps /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=deps /app/package.json ./package.json
+RUN sed -i 's/\r$//' ./apps/backend/docker-entrypoint.sh
 RUN chmod +x ./apps/backend/docker-entrypoint.sh
 EXPOSE 4000
-CMD ["./apps/backend/docker-entrypoint.sh"]
+CMD ["sh", "./apps/backend/docker-entrypoint.sh"]

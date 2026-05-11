@@ -194,14 +194,13 @@
         </form>
       </div>
 
-      <div class="absolute left-6 bottom-6">
-        <AppButton
+      <div class="absolute right-6 bottom-6">
+        <button
           type="button"
-          variant="primary"
-          :aria-label="isDark ? 'Ativar modo claro' : 'Ativar modo escuro'"
+          class="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          :aria-label="isDark ? 'Ativar tema claro' : 'Ativar tema escuro'"
           @click="toggleTheme"
         >
-          {{ isDark ? "Modo Claro" : "Modo Escuro" }}
           <svg
             v-if="isDark"
             class="w-4 h-4"
@@ -230,7 +229,7 @@
               d="M20.354 15.354A9 9 0 018.646 3.646a9.003 9.003 0 1011.708 11.708z"
             />
           </svg>
-        </AppButton>
+        </button>
       </div>
     </div>
   </div>

@@ -48,6 +48,6 @@ $$;
 SQL
 
 ./node_modules/.bin/prisma migrate deploy --schema "$SCHEMA_PATH"
-./node_modules/.bin/prisma db seed --schema "$SCHEMA_PATH"
+./node_modules/.bin/tsx ./apps/backend/prisma/seed.ts
 
 exec ./node_modules/.bin/tsx watch ./apps/backend/src/index.ts
