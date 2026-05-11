@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /criteria
+Disallow: /evaluations
+Disallow: /results
+Disallow: /users
+Disallow: /profile
+
+Sitemap: https://tcc.arthurlunkes.com.br/sitemap.xml
