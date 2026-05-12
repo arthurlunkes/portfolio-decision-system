@@ -7,7 +7,10 @@
     <footer
       class="app-footer border-t border-gray-200 bg-white/90 backdrop-blur px-4 text-center text-xs text-gray-600 dark:border-slate-800 dark:bg-slate-950/90 dark:text-slate-300"
     >
-      Desenvolvido por <strong>Arthur Lunkes</strong>
+      <span>Desenvolvido por</span>
+      <a href="https://dev.arthurlunkes.com.br" target="_blank" rel="noopener noreferrer">
+        <strong>Arthur Lunkes</strong>
+      </a>
     </footer>
   </div>
 </template>
@@ -30,14 +33,15 @@ initTheme();
 .app-content {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .app-footer {
   flex-shrink: 0;
-  height: 30px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
 }
 </style>

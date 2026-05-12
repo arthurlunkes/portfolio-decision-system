@@ -1,8 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="h-full bg-gray-50 flex flex-col overflow-hidden">
     <AppHeader @logout="authStore.logout()" />
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <main class="flex-1 min-h-0 overflow-y-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <!-- Cabeçalho -->
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Decisores</h1>
@@ -224,6 +225,7 @@
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </main>
 
