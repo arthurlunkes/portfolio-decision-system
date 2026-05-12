@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex">
+  <div class="h-full flex">
     <!-- Painel esquerdo — branding -->
     <div
       class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500 relative overflow-hidden flex-col justify-between p-12"
@@ -191,6 +191,70 @@
           >
             Entrar
           </AppButton>
+
+          <button
+            type="button"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-100 transition-colors duration-150 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-200 dark:hover:bg-primary-900/50"
+            @click="showContact = !showContact"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            {{ showContact ? "Ocultar contato" : "Contato do desenvolvedor" }}
+          </button>
+
+          <div
+            v-if="showContact"
+            class="rounded-2xl border border-gray-200 bg-white p-4 space-y-2.5 text-sm dark:border-slate-800 dark:bg-slate-900"
+          >
+            <p class="text-gray-700 font-semibold dark:text-slate-200">
+              Arthur Lunkes
+            </p>
+
+            <a
+              href="https://github.com/arthurlunkes"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+            >
+              GitHub: @arthurlunkes
+            </a>
+
+            <a
+              href="https://instagram.com/arthur_lunkes"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+            >
+              Instagram: @arthur_lunkes
+            </a>
+
+            <a
+              href="https://wa.me/5546991100092"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+            >
+              WhatsApp: +55 46 99110-0092
+            </a>
+
+            <a
+              href="mailto:arthur.lunkes2017@gmail.com"
+              class="block text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200"
+            >
+              E-mail (Gravatar): arthur.lunkes2017@gmail.com
+            </a>
+          </div>
         </form>
       </div>
 
@@ -254,6 +318,7 @@ const password = ref("");
 const loading = ref(false);
 const error = ref("");
 const showPassword = ref(false);
+const showContact = ref(false);
 const inactivityWarning = ref(route.query.reason === "inactivity");
 
 const features = [
