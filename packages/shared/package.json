@@ -7,10 +7,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json",
-    "lint": "biome check .",
-    "format": "biome format --write ."
+    "lint": "yarn exec eslint .",
+    "format": "yarn exec prettier --write ."
   },
   "devDependencies": {
+    "eslint": "^9.30.0",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.0"
   }
 }

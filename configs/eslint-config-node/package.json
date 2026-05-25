@@ -1,0 +1,12 @@
+{
+  "name": "@certa/eslint-config-node",
+  "version": "1.0.0",
+  "description": "Node runtime globals preset for ESLint flat config",
+  "main": "./index.js",
+  "exports": "./index.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": ">=9.0.0",
+    "globals": ">=16.0.0"
+  }
+}

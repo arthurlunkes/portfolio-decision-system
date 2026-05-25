@@ -1,0 +1,15 @@
+{
+  "name": "@certa/eslint-config-base",
+  "version": "1.0.0",
+  "description": "Base ESLint flat config for JS/TS projects",
+  "main": "./index.js",
+  "exports": "./index.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "@eslint/js": ">=9.0.0",
+    "@typescript-eslint/eslint-plugin": ">=8.0.0",
+    "@typescript-eslint/parser": ">=8.0.0",
+    "eslint": ">=9.0.0",
+    "eslint-config-prettier": ">=10.0.0"
+  }
+}
