@@ -51,7 +51,9 @@ async function getOrCreateCriterion(data: {
   weight: number;
   type: CriterionType;
 }) {
-  const existing = await prisma.criterion.findFirst({ where: { name: data.name } });
+  const existing = await prisma.criterion.findFirst({
+    where: { name: data.name },
+  });
   if (existing) {
     return prisma.criterion.update({
       where: { id: existing.id },
@@ -68,7 +70,9 @@ async function getOrCreateCriterion(data: {
 
 async function main() {
   const seedPassword = process.env.SEED_DEFAULT_PASSWORD || "Decisor@123";
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@tcc.local").trim().toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@tcc.local")
+    .trim()
+    .toLowerCase();
   const adminName = (process.env.ADMIN_NAME || "Administrador").trim();
   const adminPassword = process.env.ADMIN_PASSWORD || seedPassword;
 
@@ -87,7 +91,14 @@ async function main() {
   });
 
   await upsertUser({
-    name: "Leitor Demo",
+    name: "Analista Demo",
+    email: "analyst@tcc.local",
+    password: seedPassword,
+    role: UserRole.ANALYST,
+  });
+
+  await upsertUser({
+    name: "Visualizador Demo",
     email: "viewer@tcc.local",
     password: seedPassword,
     role: UserRole.VIEWER,

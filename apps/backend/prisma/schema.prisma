@@ -70,5 +70,6 @@ enum CriterionType {
 enum UserRole {
   ADMIN
   DECISOR
+  ANALYST
   VIEWER
 }

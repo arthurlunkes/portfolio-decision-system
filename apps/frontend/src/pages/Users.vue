@@ -4,228 +4,230 @@
 
     <main class="flex-1 min-h-0 overflow-y-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <!-- Cabeçalho -->
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Decisores</h1>
-        <p class="text-sm text-gray-500 mt-0.5">
-          Gerencie os usuários que participam das avaliações
-        </p>
-      </div>
-
-      <AppAlert v-if="pageError" variant="error" :message="pageError" />
-
-      <!-- Filtros e busca -->
-      <div
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4"
-      >
-        <div class="flex flex-col sm:flex-row gap-3">
-          <div class="flex-1">
-            <AppInput
-              v-model="searchTerm"
-              placeholder="Buscar por nome ou e-mail..."
-              type="text"
-            />
-          </div>
-          <div class="flex gap-2 flex-wrap">
-            <button
-              v-for="filter in roleFilters"
-              :key="filter.value"
-              type="button"
-              class="px-4 py-2.5 text-sm font-medium rounded-xl border transition-colors duration-150"
-              :class="
-                activeRoleFilter === filter.value
-                  ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              "
-              @click="activeRoleFilter = filter.value"
-            >
-              {{ filter.label }}
-            </button>
-          </div>
+        <!-- Cabeçalho -->
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Decisores</h1>
+          <p class="text-sm text-gray-500 mt-0.5">
+            Gerencie os usuários que participam das avaliações
+          </p>
         </div>
-      </div>
 
-      <!-- Tabela -->
-      <div
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-      >
+        <AppAlert v-if="pageError" variant="error" :message="pageError" />
+
+        <!-- Filtros e busca -->
         <div
-          class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+          class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4"
         >
-          <h2
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
-          >
-            Usuários ({{ filteredUsers.length }})
-          </h2>
-          <AppButton variant="primary" size="sm" @click="openAddModal">
-            Novo Decisor
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1">
+              <AppInput
+                v-model="searchTerm"
+                placeholder="Buscar por nome ou e-mail..."
+                type="text"
               />
-            </svg>
-          </AppButton>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="border-b border-gray-100 bg-gray-50/60">
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Decisor
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Papel
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Criado em
-                </th>
-                <th
-                  class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Acoes
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              <tr
-                v-for="user in filteredUsers"
-                :key="user.id"
-                class="hover:bg-gray-50/60 transition-colors"
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button
+                v-for="filter in roleFilters"
+                :key="filter.value"
+                type="button"
+                class="px-4 py-2.5 text-sm font-medium rounded-xl border transition-colors duration-150"
+                :class="
+                  activeRoleFilter === filter.value
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                "
+                @click="activeRoleFilter = filter.value"
               >
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <AppAvatar :name="user.name" size="md" />
-                    <div>
-                      <p class="text-sm font-semibold text-gray-900">
-                        {{ user.name }}
-                      </p>
-                      <p class="text-xs text-gray-400">{{ user.email }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <AppBadge :variant="roleBadgeVariant(user.role)">
-                    {{ roleLabel(user.role) }}
-                  </AppBadge>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2">
-                    <AppToggle
-                      :model-value="user.active"
-                      size="sm"
-                      @update:model-value="toggleActive(user)"
-                    />
-                    <span
-                      class="text-xs font-medium"
-                      :class="user.active ? 'text-green-600' : 'text-gray-400'"
-                    >
-                      {{ user.active ? "Ativo" : "Inativo" }}
-                    </span>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">{{
-                    formatDate(user.createdAt)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center justify-end gap-1">
-                    <button
-                      type="button"
-                      class="p-2 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                      title="Editar"
-                      @click="openEditModal(user)"
-                    >
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                      title="Alterar senha"
-                      @click="openPasswordModal(user)"
-                    >
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="Excluir"
-                      @click="confirmDelete(user)"
-                    >
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-
-              <tr v-if="filteredUsers.length === 0">
-                <td
-                  colspan="5"
-                  class="px-6 py-12 text-center text-sm text-gray-400"
-                >
-                  Nenhum decisor encontrado.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                {{ filter.label }}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- Tabela -->
+        <div
+          class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+        >
+          <div
+            class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+          >
+            <h2
+              class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
+            >
+              Usuários ({{ filteredUsers.length }})
+            </h2>
+            <AppButton variant="primary" size="sm" @click="openAddModal">
+              Novo Decisor
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </AppButton>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/60">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Decisor
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Papel
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Criado em
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Acoes
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr
+                  v-for="user in filteredUsers"
+                  :key="user.id"
+                  class="hover:bg-gray-50/60 transition-colors"
+                >
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <AppAvatar :name="user.name" size="md" />
+                      <div>
+                        <p class="text-sm font-semibold text-gray-900">
+                          {{ user.name }}
+                        </p>
+                        <p class="text-xs text-gray-400">{{ user.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <AppBadge :variant="roleBadgeVariant(user.role)">
+                      {{ roleLabel(user.role) }}
+                    </AppBadge>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <AppToggle
+                        :model-value="user.active"
+                        size="sm"
+                        @update:model-value="toggleActive(user)"
+                      />
+                      <span
+                        class="text-xs font-medium"
+                        :class="
+                          user.active ? 'text-green-600' : 'text-gray-400'
+                        "
+                      >
+                        {{ user.active ? "Ativo" : "Inativo" }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-500">{{
+                      formatDate(user.createdAt)
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        class="p-2 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                        title="Editar"
+                        @click="openEditModal(user)"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title="Alterar senha"
+                        @click="openPasswordModal(user)"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Excluir"
+                        @click="confirmDelete(user)"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr v-if="filteredUsers.length === 0">
+                  <td
+                    colspan="5"
+                    class="px-6 py-12 text-center text-sm text-gray-400"
+                  >
+                    Nenhum decisor encontrado.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -515,6 +517,12 @@ const roles: {
     activeClass: "border-primary-500 bg-primary-50 text-primary-700",
   },
   {
+    value: "ANALYST",
+    label: "Analista",
+    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    activeClass: "border-blue-500 bg-blue-50 text-blue-700",
+  },
+  {
     value: "VIEWER",
     label: "Visualizador",
     icon: "M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
@@ -526,6 +534,7 @@ const roleFilters = [
   { value: "all", label: "Todos" },
   { value: "ADMIN", label: "Admin" },
   { value: "DECISOR", label: "Decisores" },
+  { value: "ANALYST", label: "Analistas" },
   { value: "VIEWER", label: "Visualizadores" },
 ];
 
@@ -575,12 +584,24 @@ const filteredUsers = computed(() =>
 );
 
 const roleLabel = (role: UserRole) =>
-  ({ ADMIN: "Administrador", DECISOR: "Decisor", VIEWER: "Visualizador" })[
-    role
-  ];
+  ({
+    ADMIN: "Administrador",
+    DECISOR: "Decisor",
+    ANALYST: "Analista",
+    VIEWER: "Visualizador",
+  })[role];
 
-const roleBadgeVariant = (role: UserRole): "purple" | "primary" | "gray" =>
-  (({ ADMIN: "purple", DECISOR: "primary", VIEWER: "gray" }) as const)[role];
+const roleBadgeVariant = (
+  role: UserRole,
+): "purple" | "primary" | "blue" | "gray" =>
+  (
+    ({
+      ADMIN: "purple",
+      DECISOR: "primary",
+      ANALYST: "blue",
+      VIEWER: "gray",
+    }) as const
+  )[role];
 
 const formatDate = (d: string) => {
   if (!d) return "-";
@@ -704,4 +725,3 @@ const deleteUser = async () => {
   }
 };
 </script>
-

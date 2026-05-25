@@ -20,7 +20,7 @@
         <!-- Navigation -->
         <nav v-if="showNav" class="hidden md:flex items-center gap-1">
           <RouterLink
-            v-for="item in navItems"
+            v-for="item in navItemsToUse"
             :key="item.to"
             :to="item.to"
             :class="[
@@ -131,7 +131,27 @@ const authUser = computed(
   () => authStore.user as { name: string; email: string } | null,
 );
 
-withDefaults(
+const isAdmin = computed(() => authStore.role === "ADMIN");
+
+const defaultNavItems = computed(() => {
+  const items = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/projects", label: "Projetos" },
+    { to: "/criteria", label: "Critérios" },
+    { to: "/evaluations", label: "Avaliações" },
+    { to: "/results", label: "Resultados" },
+    { to: "/users", label: "Decisores" },
+    { to: "/roles", label: "Atribuições" },
+  ];
+
+  if (isAdmin.value) {
+    items.push({ to: "/roles", label: "⚙️ Papéis" });
+  }
+
+  return items;
+});
+
+const props = withDefaults(
   defineProps<{
     showNav?: boolean;
     showLogout?: boolean;
@@ -140,16 +160,15 @@ withDefaults(
   {
     showNav: true,
     showLogout: true,
-    navItems: () => [
-      { to: "/dashboard", label: "Dashboard" },
-      { to: "/projects", label: "Projetos" },
-      { to: "/criteria", label: "Critérios" },
-      { to: "/evaluations", label: "Avaliações" },
-      { to: "/results", label: "Resultados" },
-      { to: "/users", label: "Decisores" },
-    ],
+    navItems: () => [],
   },
 );
+
+const navItemsToUse = computed(() => {
+  return props.navItems && props.navItems.length > 0
+    ? props.navItems
+    : defaultNavItems.value;
+});
 
 defineEmits<{ logout: [] }>();
 </script>

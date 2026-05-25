@@ -5,6 +5,7 @@ import Login from "@/pages/Login.vue";
 import Profile from "@/pages/Profile.vue";
 import Projects from "@/pages/Projects.vue";
 import Results from "@/pages/Results.vue";
+import RolesManager from "@/pages/RolesManager.vue";
 import Users from "@/pages/Users.vue";
 import { isSessionExpired } from "@/stores/auth";
 import { createRouter, createWebHistory } from "vue-router";
@@ -197,6 +198,12 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: Profile,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/roles",
+    name: "RolesManager",
+    component: RolesManager,
     meta: { requiresAuth: true },
   },
 ];

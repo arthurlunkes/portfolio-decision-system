@@ -14,6 +14,7 @@ dist-ssr
 .env*
 apps/backend/.env
 apps/frontend/.env
+!.env.example
 
 # Yarn local state
 .yarn/install-state.gz
