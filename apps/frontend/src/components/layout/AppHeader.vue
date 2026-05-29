@@ -6,13 +6,8 @@
       <div class="flex items-center justify-between h-16">
         <!-- Logo / Brand -->
         <div class="flex items-center gap-3">
-          <img
-            src="/logo.png"
-            alt="DecisionPortfólio"
-            class="w-8 h-8 rounded-lg object-cover"
-          />
-          <span
-            class="font-bold text-gray-900 text-lg tracking-tight dark:text-slate-100"
+          <img src="/logo.png" alt="DecisionPortfólio" class="w-8 h-8 rounded-lg object-cover" />
+          <span class="font-bold text-gray-900 text-lg tracking-tight dark:text-slate-100"
             >DecisionPortfólio</span
           >
         </div>
@@ -56,13 +51,7 @@
                 d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 7.05 5.636 5.636m12.728 0-1.414 1.414M7.05 16.95l-1.414 1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z"
               />
             </svg>
-            <svg
-              v-else
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -82,9 +71,7 @@
             :title="authUser.name"
           >
             <AppAvatar :name="authUser.name" size="sm" />
-            <span
-              class="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate"
-            >
+            <span class="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
               {{ authUser.name }}
             </span>
           </RouterLink>
@@ -96,12 +83,7 @@
             title="Sair"
             @click="$emit('logout')"
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -127,9 +109,7 @@ import { RouterLink, useRoute } from "vue-router";
 const $route = useRoute();
 const authStore = useAuthStore();
 const { isDark, toggleTheme } = useTheme();
-const authUser = computed(
-  () => authStore.user as { name: string; email: string } | null,
-);
+const authUser = computed(() => authStore.user as { name: string; email: string } | null);
 
 const isAdmin = computed(() => authStore.role === "ADMIN");
 
@@ -143,10 +123,6 @@ const defaultNavItems = computed(() => {
     { to: "/users", label: "Decisores" },
     { to: "/roles", label: "Atribuições" },
   ];
-
-  if (isAdmin.value) {
-    items.push({ to: "/roles", label: "⚙️ Papéis" });
-  }
 
   return items;
 });
@@ -165,9 +141,7 @@ const props = withDefaults(
 );
 
 const navItemsToUse = computed(() => {
-  return props.navItems && props.navItems.length > 0
-    ? props.navItems
-    : defaultNavItems.value;
+  return props.navItems && props.navItems.length > 0 ? props.navItems : defaultNavItems.value;
 });
 
 defineEmits<{ logout: [] }>();

@@ -4,121 +4,110 @@
 
     <main class="flex-1 min-h-0 overflow-y-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <!-- Page title + action -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Projetos</h1>
-          <p class="text-sm text-gray-500 mt-0.5">
-            Gerencie os projetos do portfólio
-          </p>
+        <!-- Page title + action -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Projetos</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Gerencie os projetos do portfólio</p>
+          </div>
+          <AppButton variant="primary" @click="showAddModal = true">
+            Adicionar Projeto
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </AppButton>
         </div>
-        <AppButton variant="primary" @click="showAddModal = true">
-          Adicionar Projeto
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </AppButton>
-      </div>
 
-      <!-- Search -->
-      <div class="max-w-sm">
-        <AppInput
-          v-model="searchTerm"
-          type="text"
-          placeholder="Buscar projetos..."
-        />
-      </div>
+        <!-- Search -->
+        <div class="max-w-sm">
+          <AppInput v-model="searchTerm" type="text" placeholder="Buscar projetos..." />
+        </div>
 
-      <!-- Table card -->
-      <div
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="border-b border-gray-100 bg-gray-50/60">
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Nome
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Descrição
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Criado em
-                </th>
-                <th
-                  class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              <tr v-if="filteredProjects.length === 0">
+        <div
+          v-if="pageError"
+          class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {{ pageError }}
+        </div>
+
+        <!-- Table card -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/60">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Nome
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Descrição
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Criado em
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr v-if="loading">
                 <td
                   colspan="4"
                   class="px-6 py-12 text-center text-sm text-gray-400"
                 >
-                  Nenhum projeto encontrado.
+                  Carregando projetos...
                 </td>
               </tr>
-              <tr
-                v-for="project in filteredProjects"
-                :key="project.id"
-                class="hover:bg-gray-50/60 transition-colors"
-              >
-                <td class="px-6 py-4">
-                  <span class="font-semibold text-gray-900 text-sm">{{
-                    project.name
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 max-w-xs">
-                  <span class="text-sm text-gray-500 line-clamp-1">{{
-                    project.description
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500">{{
-                    formatDate(project.createdAt)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <AppButton
-                      variant="ghost"
-                      size="sm"
-                      @click="editProject(project)"
-                      >Editar</AppButton
-                    >
-                    <AppButton
-                      variant="danger"
-                      size="sm"
-                      @click="deleteProject(project)"
-                      >Excluir</AppButton
-                    >
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+              <tr v-else-if="filteredProjects.length === 0">
+                  <td colspan="4" class="px-6 py-12 text-center text-sm text-gray-400">
+                    Nenhum projeto encontrado.
+                  </td>
+                </tr>
+                <tr
+                  v-for="project in filteredProjects"
+                  :key="project.id"
+                  class="hover:bg-gray-50/60 transition-colors"
+                >
+                  <td class="px-6 py-4">
+                    <span class="font-semibold text-gray-900 text-sm">{{ project.name }}</span>
+                  </td>
+                  <td class="px-6 py-4 max-w-xs">
+                    <span class="text-sm text-gray-500 line-clamp-1">{{
+                      project.description
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-500">{{ formatDate(project.createdAt) }}</span>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <AppButton variant="ghost" size="sm" @click="editProject(project)"
+                        >Editar</AppButton
+                      >
+                      <AppButton variant="danger" size="sm" @click="deleteProject(project)"
+                        >Excluir</AppButton
+                      >
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
       </div>
     </main>
     <!-- Modal -->
@@ -130,9 +119,7 @@
           @click.self="closeModal"
         >
           <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
-            <div
-              class="flex items-center justify-between px-6 py-5 border-b border-gray-100"
-            >
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <h3 class="text-lg font-bold text-gray-900">
                 {{ showEditModal ? "Editar Projeto" : "Novo Projeto" }}
               </h3>
@@ -141,12 +128,7 @@
                 class="text-gray-400 hover:text-gray-600 transition-colors"
                 @click="closeModal"
               >
-                <svg
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -158,9 +140,7 @@
             </div>
             <form class="px-6 py-5 space-y-4" @submit.prevent="saveProject">
               <div>
-                <label
-                  for="projectName"
-                  class="block text-sm font-medium text-gray-700 mb-1.5"
+                <label for="projectName" class="block text-sm font-medium text-gray-700 mb-1.5"
                   >Nome</label
                 >
                 <AppInput
@@ -249,9 +229,7 @@ const filteredProjects = computed(() => {
   return projects.value.filter(
     (project) =>
       project.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      project.description
-        .toLowerCase()
-        .includes(searchTerm.value.toLowerCase()),
+      project.description.toLowerCase().includes(searchTerm.value.toLowerCase()),
   );
 });
 
@@ -268,8 +246,7 @@ const editProject = (project: Project) => {
 };
 
 const deleteProject = async (project: Project) => {
-  if (!confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`))
-    return;
+  if (!confirm(`Tem certeza que deseja excluir o projeto "${project.name}"?`)) return;
   try {
     await apiDelete(project.id);
     projects.value = projects.value.filter((p) => p.id !== project.id);
@@ -311,4 +288,3 @@ const closeModal = () => {
   };
 };
 </script>
-

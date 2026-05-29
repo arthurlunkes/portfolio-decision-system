@@ -4,213 +4,216 @@
 
     <main class="flex-1 min-h-0 overflow-y-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <!-- Page title + action -->
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Resultados VIKOR</h1>
-          <p class="text-sm text-gray-500 mt-0.5">
-            Ranking multicritério baseado no método VIKOR fuzzy
-          </p>
+        <!-- Page title + action -->
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Resultados VIKOR</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+              Ranking multicritério baseado no método VIKOR fuzzy
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            <AppButton variant="secondary" @click="exportResults('pdf')">
+              Exportar PDF
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
+              </svg>
+            </AppButton>
+            <AppButton variant="secondary" @click="exportResults('excel')">
+              Exportar Excel
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </AppButton>
+            <AppButton variant="primary" @click="calculateRanking">
+              Calcular Ranking
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </AppButton>
+          </div>
         </div>
-        <div class="flex flex-wrap items-center justify-end gap-3">
-          <AppButton variant="secondary" @click="exportResults('pdf')">
-            Exportar PDF
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-              />
-            </svg>
-          </AppButton>
-          <AppButton variant="secondary" @click="exportResults('excel')">
-            Exportar Excel
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </AppButton>
-          <AppButton variant="primary" @click="calculateRanking">
-            Calcular Ranking
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          </AppButton>
-        </div>
-      </div>
 
-      <div
-        v-if="pageError"
-        class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-      >
-        {{ pageError }}
-      </div>
-
-      <!-- Ranking Table -->
-      <div
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-      >
-        <div class="px-6 py-4 border-b border-gray-100">
-          <h2
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
-          >
-            Ranking VIKOR
-          </h2>
+        <div
+          v-if="exportNotice"
+          class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+        >
+          {{ exportNotice }}
         </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full">
-            <thead>
-              <tr class="border-b border-gray-100 bg-gray-50/60">
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+
+        <div
+          v-if="pageError"
+          class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {{ pageError }}
+        </div>
+
+        <!-- Ranking Table -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+              Ranking VIKOR
+            </h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/60">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Posição
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Projeto
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Valor S
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Valor R
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Valor Q
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Aceitabilidade
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr
+                  v-for="(result, index) in rankingResults"
+                  :key="result.projectId"
+                  class="hover:bg-gray-50/60 transition-colors"
+                  :class="index === 0 ? 'bg-amber-50/40' : ''"
                 >
-                  Posição
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Projeto
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Valor S
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Valor R
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Valor Q
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                >
-                  Aceitabilidade
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              <tr
-                v-for="(result, index) in rankingResults"
-                :key="result.projectId"
-                class="hover:bg-gray-50/60 transition-colors"
-                :class="index === 0 ? 'bg-amber-50/40' : ''"
-              >
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                        :class="
+                          index === 0
+                            ? 'bg-amber-100 text-amber-700'
+                            : index === 1
+                              ? 'bg-gray-100 text-gray-600'
+                              : 'bg-gray-50 text-gray-500'
+                        "
+                      >
+                        #{{ index + 1 }}
+                      </div>
+                      <span
+                        v-if="index === 0"
+                        class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full"
+                        >Melhor</span
+                      >
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="font-semibold text-gray-900 text-sm">{{
+                      result.projectName
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-600 font-mono">{{
+                      result.sValue.toFixed(3)
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-600 font-mono">{{
+                      result.rValue.toFixed(3)
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm font-semibold text-gray-900 font-mono">{{
+                      result.qValue.toFixed(3)
+                    }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-2.5 py-1 text-xs font-semibold rounded-full"
                       :class="
-                        index === 0
-                          ? 'bg-amber-100 text-amber-700'
-                          : index === 1
-                            ? 'bg-gray-100 text-gray-600'
-                            : 'bg-gray-50 text-gray-500'
+                        result.isAcceptable
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
                       "
                     >
-                      #{{ index + 1 }}
-                    </div>
-                    <span
-                      v-if="index === 0"
-                      class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full"
-                      >Melhor</span
-                    >
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="font-semibold text-gray-900 text-sm">{{
-                    result.projectName
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 font-mono">{{
-                    result.sValue.toFixed(3)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 font-mono">{{
-                    result.rValue.toFixed(3)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm font-semibold text-gray-900 font-mono">{{
-                    result.qValue.toFixed(3)
-                  }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span
-                    class="px-2.5 py-1 text-xs font-semibold rounded-full"
-                    :class="
-                      result.isAcceptable
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    "
-                  >
-                    {{ result.isAcceptable ? "Aceitável" : "Não Aceitável" }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                      {{ result.isAcceptable ? "Aceitável" : "Não Aceitável" }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h3
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4"
-          >
-            Comparação de Valores Q
-          </h3>
-          <div class="h-64">
-            <canvas ref="barChart" />
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+              Comparação de Valores Q
+            </h3>
+            <div v-if="rankingResults.length > 0" class="h-64">
+              <canvas ref="barChart" />
+            </div>
+            <div
+              v-else
+              class="h-64 flex items-center justify-center text-sm text-gray-400"
+            >
+              Calcule o ranking para visualizar o gráfico.
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              Desempenho Comparativo
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">
+              Eixos = projetos · Linhas = métricas VIKOR normalizadas (0–1, quanto maior melhor)
+            </p>
+            <div v-if="rankingResults.length >= 3" class="h-80">
+              <canvas ref="radarChart" />
+            </div>
+            <div
+              v-else-if="rankingResults.length > 0"
+              class="h-80 flex items-center justify-center text-center px-4"
+            >
+              <p class="text-sm text-gray-400">
+                São necessários pelo menos 3 projetos no ranking para exibir o gráfico de radar.
+              </p>
+            </div>
+            <div
+              v-else
+              class="h-80 flex items-center justify-center text-sm text-gray-400"
+            >
+              Calcule o ranking para visualizar o gráfico.
+            </div>
           </div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h3
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1"
-          >
-            Desempenho Comparativo
-          </h3>
-          <p class="text-xs text-gray-500 mb-4">
-            Eixos = projetos · Linhas = métricas VIKOR normalizadas (0–1, quanto
-            maior melhor)
-          </p>
-          <div class="h-80">
-            <canvas ref="radarChart" />
-          </div>
-        </div>
-      </div>
       </div>
     </main>
   </div>
@@ -237,7 +240,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
 const { isDark } = useTheme();
@@ -272,6 +275,7 @@ const radarChart = ref<HTMLCanvasElement>();
 const rankingResults = ref<RankingResult[]>([]);
 const calculating = ref(false);
 const pageError = ref("");
+const exportNotice = ref("");
 
 let barChartInstance: Chart | null = null;
 let radarChartInstance: Chart | null = null;
@@ -295,39 +299,34 @@ const calculateRanking = async () => {
       }));
     await nextTick();
     createBarChart();
-    createRadarChart();
+    if (rankingResults.value.length >= 3) {
+      createRadarChart();
+    }
   } catch {
-    pageError.value =
-      "Erro ao calcular ranking. Verifique se todos os projetos foram avaliados.";
+    pageError.value = "Erro ao calcular ranking. Verifique se todos os projetos foram avaliados.";
   } finally {
     calculating.value = false;
   }
 };
 
-const PALETTE_BG = [
-  "rgba(34,197,94,0.8)",
-  "rgba(59,130,246,0.8)",
-  "rgba(239,68,68,0.8)",
-  "rgba(234,179,8,0.8)",
-  "rgba(168,85,247,0.8)",
-  "rgba(20,184,166,0.8)",
-];
-const PALETTE_BORDER = PALETTE_BG.map((c) => c.replace("0.8", "1"));
+function getProjectColors(n: number): { bg: string[]; border: string[] } {
+  const hues = [142, 217, 0, 43, 271, 174, 196, 24, 326, 84];
+  const bg: string[] = [];
+  const border: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const h = hues[i % hues.length];
+    bg.push(`hsla(${h}, 70%, 55%, 0.85)`);
+    border.push(`hsla(${h}, 70%, 42%, 1)`);
+  }
+  return { bg, border };
+}
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-function normalizeLowerIsBetter(
-  value: number,
-  min: number,
-  max: number,
-): number {
-  if (
-    !Number.isFinite(value) ||
-    !Number.isFinite(min) ||
-    !Number.isFinite(max)
-  ) {
+function normalizeLowerIsBetter(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) {
     return 0;
   }
   if (max === min) {
@@ -346,9 +345,12 @@ function createBarChart() {
   if (!ctx) return;
   const n = rankingResults.value.length;
   const textColor = isDark.value ? "#cbd5e1" : "#475569";
-  const gridColor = isDark.value
-    ? "rgba(100,116,139,0.25)"
-    : "rgba(148,163,184,0.25)";
+  const gridColor = isDark.value ? "rgba(100,116,139,0.25)" : "rgba(148,163,184,0.25)";
+  const tooltipBg = isDark.value ? "#1e293b" : "#ffffff";
+  const tooltipBorder = isDark.value ? "#334155" : "#e2e8f0";
+  const tooltipTitle = isDark.value ? "#f1f5f9" : "#1e293b";
+  const tooltipBody = isDark.value ? "#94a3b8" : "#475569";
+  const { bg, border } = getProjectColors(n);
   barChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
@@ -357,28 +359,45 @@ function createBarChart() {
         {
           label: "Valor Q",
           data: rankingResults.value.map((r) => r.qValue),
-          backgroundColor: PALETTE_BG.slice(0, n),
-          borderColor: PALETTE_BORDER.slice(0, n),
-          borderWidth: 1,
+          backgroundColor: bg,
+          borderColor: border,
+          borderWidth: 1.5,
+          borderRadius: 6,
+          borderSkipped: false,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: { duration: 600, easing: "easeOutQuart" },
       plugins: {
         title: {
           display: true,
-          text: "Valores Q dos Projetos",
+          text: "Valor Q — menor é melhor",
           color: textColor,
+          font: { size: 12, weight: "600" },
+          padding: { bottom: 12 },
         },
-        legend: { display: false, labels: { color: textColor } },
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tooltipBg,
+          borderColor: tooltipBorder,
+          borderWidth: 1,
+          titleColor: tooltipTitle,
+          bodyColor: tooltipBody,
+          padding: 10,
+          callbacks: {
+            label: (context) =>
+              ` Q = ${Number(context.raw).toFixed(3)}`,
+          },
+        },
       },
       scales: {
         y: {
           beginAtZero: true,
           max: 1,
-          ticks: { color: textColor },
+          ticks: { color: textColor, stepSize: 0.2 },
           grid: { color: gridColor },
         },
         x: {
@@ -391,7 +410,7 @@ function createBarChart() {
 }
 
 function createRadarChart() {
-  if (!radarChart.value) return;
+  if (!radarChart.value || rankingResults.value.length < 3) return;
   if (radarChartInstance) {
     radarChartInstance.destroy();
     radarChartInstance = null;
@@ -399,6 +418,9 @@ function createRadarChart() {
   const ctx = radarChart.value.getContext("2d");
   if (!ctx) return;
   const textColor = isDark.value ? "#cbd5e1" : "#475569";
+  const gridColor = isDark.value
+    ? "rgba(100,116,139,0.25)"
+    : "rgba(148,163,184,0.25)";
 
   const sValues = rankingResults.value.map((r) => r.sValue);
   const rValues = rankingResults.value.map((r) => r.rValue);
@@ -423,9 +445,7 @@ function createRadarChart() {
   const qData = rankingResults.value.map(
     (r) => +normalizeLowerIsBetter(r.qValue, qMin, qMax).toFixed(3),
   );
-  const scoreData = rankingResults.value.map(
-    (r) => +clamp01(1 - r.qValue).toFixed(3),
-  );
+  const scoreData = rankingResults.value.map((r) => +clamp01(1 - r.qValue).toFixed(3));
 
   radarChartInstance = new Chart(ctx, {
     type: "radar",
@@ -483,8 +503,7 @@ function createRadarChart() {
         legend: { position: "top", labels: { color: textColor } },
         tooltip: {
           callbacks: {
-            label: (context) =>
-              `${context.dataset.label}: ${Number(context.raw).toFixed(3)}`,
+            label: (context) => `${context.dataset.label}: ${Number(context.raw).toFixed(3)}`,
           },
         },
       },
@@ -499,7 +518,7 @@ function createRadarChart() {
             color: textColor,
             font: { size: 11 },
           },
-          grid: { color: "rgba(148,163,184,0.25)" },
+          grid: { color: gridColor },
           pointLabels: { color: textColor, font: { size: 12 } },
         },
       },
@@ -508,15 +527,26 @@ function createRadarChart() {
 }
 
 const exportResults = (format: "pdf" | "excel") => {
-  alert(`Exportando resultados em formato ${format.toUpperCase()}...`);
+  exportNotice.value = `Exportação em ${format.toUpperCase()} em desenvolvimento. Funcionalidade disponível em breve.`;
+  setTimeout(() => {
+    exportNotice.value = "";
+  }, 4000);
 };
 
 onMounted(() => {
   calculateRanking();
 });
 
-watch(isDark, () => {
-  createBarChart();
-  createRadarChart();
+onUnmounted(() => {
+  barChartInstance?.destroy();
+  radarChartInstance?.destroy();
+  barChartInstance = null;
+  radarChartInstance = null;
+});
+
+watch(isDark, async () => {
+  await nextTick();
+  if (rankingResults.value.length > 0) createBarChart();
+  if (rankingResults.value.length >= 3) createRadarChart();
 });
 </script>
