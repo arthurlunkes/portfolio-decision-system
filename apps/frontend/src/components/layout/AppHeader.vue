@@ -116,6 +116,7 @@ const isAdmin = computed(() => authStore.role === "ADMIN");
 const defaultNavItems = computed(() => {
   const items = [
     { to: "/dashboard", label: "Dashboard" },
+    { to: "/portfolios", label: "Portfólios" },
     { to: "/projects", label: "Projetos" },
     { to: "/criteria", label: "Critérios" },
     { to: "/evaluations", label: "Avaliações" },

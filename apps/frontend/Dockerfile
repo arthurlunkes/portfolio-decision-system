@@ -13,7 +13,7 @@ COPY configs/prettier-config/package.json configs/prettier-config/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN yarn install --immutable
 
-COPY tsconfig.base.json turbo.json biome.json ./
+COPY tsconfig.base.json turbo.json ./
 COPY apps/frontend apps/frontend
 COPY packages/shared packages/shared
 RUN yarn workspace @portfolio/frontend exec vite build

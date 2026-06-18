@@ -23,9 +23,16 @@
           </AppButton>
         </div>
 
-        <!-- Search -->
-        <div class="max-w-sm">
-          <AppInput v-model="searchTerm" type="text" placeholder="Buscar projetos..." />
+        <!-- Portfolio selector -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="w-64">
+            <AppSelect v-model="selectedPortfolioId" placeholder="Selecione um portfólio">
+              <option v-for="p in portfolios" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </AppSelect>
+          </div>
+          <div class="flex-1 max-w-sm">
+            <AppInput v-model="searchTerm" type="text" placeholder="Buscar projetos..." />
+          </div>
         </div>
 
         <div
@@ -186,6 +193,8 @@
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppInput from "@/components/ui/AppInput.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
+import { usePortfolioContext } from "@/composables/usePortfolioContext";
 import type { Project } from "@/services/api/projects";
 import {
   createProject as apiCreate,
@@ -194,9 +203,10 @@ import {
   getProjects,
 } from "@/services/api/projects";
 import { useAuthStore } from "@/stores/auth";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
+const { portfolios, selectedPortfolioId } = usePortfolioContext();
 
 const searchTerm = ref("");
 const showAddModal = ref(false);
@@ -213,16 +223,20 @@ const projectForm = ref({
 
 const projects = ref<Project[]>([]);
 
-onMounted(async () => {
+async function loadProjects() {
+  if (!selectedPortfolioId.value) return;
   loading.value = true;
   try {
-    projects.value = await getProjects();
+    projects.value = await getProjects(selectedPortfolioId.value);
   } catch {
     pageError.value = "Erro ao carregar projetos.";
   } finally {
     loading.value = false;
   }
-});
+}
+
+onMounted(loadProjects);
+watch(selectedPortfolioId, loadProjects);
 
 const filteredProjects = computed(() => {
   if (!searchTerm.value) return projects.value;
@@ -259,6 +273,7 @@ const saveProject = async () => {
   try {
     if (showEditModal.value) {
       const updated = await apiUpdate(projectForm.value.id, {
+        portfolioId: selectedPortfolioId.value,
         name: projectForm.value.name,
         description: projectForm.value.description,
       });
@@ -266,6 +281,7 @@ const saveProject = async () => {
       if (idx !== -1) projects.value[idx] = updated;
     } else {
       const created = await apiCreate({
+        portfolioId: selectedPortfolioId.value,
         name: projectForm.value.name,
         description: projectForm.value.description,
       });

@@ -7,59 +7,120 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Portfolio {
+  id          String      @id @default(uuid())
+  name        String
+  description String      @default("")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  projects    Project[]
+  criteria    Criterion[]
+  rankings    Ranking[]
+
+  @@map("portfolios")
+}
+
 model Project {
   id          String        @id @default(uuid())
+  portfolioId String
   name        String
   description String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  portfolio   Portfolio     @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   evaluations Evaluation[]
+  positions   RankingPosition[]
 
   @@map("projects")
 }
 
 model Criterion {
   id          String        @id @default(uuid())
+  portfolioId String
   name        String
   description String
   weight      Float
   type        CriterionType
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  portfolio   Portfolio     @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   evaluations Evaluation[]
 
   @@map("criteria")
 }
 
 model Evaluation {
-  id             String        @id @default(uuid())
+  id             String   @id @default(uuid())
   projectId      String
   criterionId    String
+  evaluatorId    String
   linguisticTerm String
   fuzzyValue     Float
   label          String
   alpha          Float
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   criterion Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  evaluator User      @relation("EvaluatorEvaluations", fields: [evaluatorId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, criterionId])
+  @@unique([projectId, criterionId, evaluatorId])
   @@map("evaluations")
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String       @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String       @unique
   passwordHash String
-  role         UserRole @default(DECISOR)
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         UserRole     @default(DECISOR)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  evaluations  Evaluation[] @relation("EvaluatorEvaluations")
 
   @@map("users")
+}
+
+model Ranking {
+  id          String            @id @default(uuid())
+  portfolioId String
+  executedAt  DateTime          @default(now())
+  v           Float             @default(0.5)
+  portfolio   Portfolio         @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  positions   RankingPosition[]
+
+  @@map("rankings")
+}
+
+model RankingPosition {
+  id          String   @id @default(uuid())
+  rankingId   String
+  projectId   String
+  sValue      Float
+  rValue      Float
+  qValue      Float
+  rank        Int
+  c1Satisfied Boolean
+  c2Satisfied Boolean
+  ranking     Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("ranking_positions")
+}
+
+model CustomRole {
+  id          String   @id
+  name        String   @unique
+  label       String
+  description String   @default("")
+  permissions Json
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("custom_roles")
 }
 
 enum CriterionType {

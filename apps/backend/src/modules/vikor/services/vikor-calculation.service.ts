@@ -6,7 +6,10 @@ export interface VIKORResult {
   rValue: number;
   qValue: number;
   rank: number;
-  isAcceptable: boolean;
+  /** C1: Q advantage — Q[2nd] - Q[1st] >= 1/(J-1) */
+  c1Satisfied: boolean;
+  /** C2: Stability — the Q-winner is also the S-winner or the R-winner */
+  c2Satisfied: boolean;
 }
 
 interface BestWorstValues {
@@ -20,15 +23,9 @@ export class VIKORCalculationService {
     weights: number[],
     criterionTypes: CriterionType[]
   ): VIKORResult[] {
-    if (decisionMatrix.length === 0) {
-      return [];
-    }
+    if (decisionMatrix.length === 0) return [];
+    if (decisionMatrix[0].length === 0) return [];
 
-    if (decisionMatrix[0].length === 0) {
-      return [];
-    }
-
-    const numAlternatives = decisionMatrix.length;
     const numCriteria = decisionMatrix[0].length;
 
     for (const row of decisionMatrix) {
@@ -36,22 +33,18 @@ export class VIKORCalculationService {
         throw new Error('Decision matrix rows must have the same number of criteria');
       }
     }
-
     if (weights.length !== numCriteria) {
       throw new Error('Number of weights must match number of criteria');
     }
-
     if (criterionTypes.length !== numCriteria) {
       throw new Error('Number of criterion types must match number of criteria');
     }
 
     const { fStar, fMinus } = this.determineBestWorst(decisionMatrix, criterionTypes);
-    
     const sValues = this.calculateS(decisionMatrix, weights, fStar, fMinus);
     const rValues = this.calculateR(decisionMatrix, weights, fStar, fMinus);
-    
     const qValues = this.calculateQ(sValues, rValues);
-    
+
     return this.rankAlternatives(sValues, rValues, qValues);
   }
 
@@ -65,7 +58,6 @@ export class VIKORCalculationService {
 
     for (let j = 0; j < numCriteria; j++) {
       const column = decisionMatrix.map(row => row[j]);
-      
       if (criterionTypes[j] === CriterionType.BENEFIT) {
         fStar[j] = Math.max(...column);
         fMinus[j] = Math.min(...column);
@@ -84,22 +76,17 @@ export class VIKORCalculationService {
     fStar: number[],
     fMinus: number[]
   ): number[] {
-    const numAlternatives = decisionMatrix.length;
-    const sValues: number[] = [];
-
-    for (let i = 0; i < numAlternatives; i++) {
+    return decisionMatrix.map(row => {
       let sum = 0;
       for (let j = 0; j < weights.length; j++) {
         const normalizedDiff = this.safeNormalize(
-          Math.abs(fStar[j] - decisionMatrix[i][j]),
+          Math.abs(fStar[j] - row[j]),
           Math.abs(fStar[j] - fMinus[j])
         );
         sum += weights[j] * normalizedDiff;
       }
-      sValues[i] = this.toFinite(sum);
-    }
-
-    return sValues;
+      return this.toFinite(sum);
+    });
   }
 
   private calculateR(
@@ -108,22 +95,16 @@ export class VIKORCalculationService {
     fStar: number[],
     fMinus: number[]
   ): number[] {
-    const numAlternatives = decisionMatrix.length;
-    const rValues: number[] = [];
-
-    for (let i = 0; i < numAlternatives; i++) {
-      const weightedDiffs = [];
-      for (let j = 0; j < weights.length; j++) {
+    return decisionMatrix.map(row => {
+      const weightedDiffs = weights.map((w, j) => {
         const normalizedDiff = this.safeNormalize(
-          Math.abs(fStar[j] - decisionMatrix[i][j]),
+          Math.abs(fStar[j] - row[j]),
           Math.abs(fStar[j] - fMinus[j])
         );
-        weightedDiffs.push(weights[j] * normalizedDiff);
-      }
-      rValues[i] = this.toFinite(Math.max(...weightedDiffs));
-    }
-
-    return rValues;
+        return w * normalizedDiff;
+      });
+      return this.toFinite(Math.max(...weightedDiffs));
+    });
   }
 
   private calculateQ(sValues: number[], rValues: number[]): number[] {
@@ -133,63 +114,61 @@ export class VIKORCalculationService {
     const rMinus = Math.max(...rValues);
 
     const v = 0.5;
-    const qValues: number[] = [];
-
-    for (let i = 0; i < sValues.length; i++) {
-      const sTerm = this.safeNormalize(sValues[i] - sStar, sMinus - sStar);
+    return sValues.map((s, i) => {
+      const sTerm = this.safeNormalize(s - sStar, sMinus - sStar);
       const rTerm = this.safeNormalize(rValues[i] - rStar, rMinus - rStar);
-      const q = v * sTerm + (1 - v) * rTerm;
-      qValues[i] = this.toFinite(q);
-    }
-
-    return qValues;
+      return this.toFinite(v * sTerm + (1 - v) * rTerm);
+    });
   }
 
-  private rankAlternatives(sValues: number[], rValues: number[], qValues: number[]): VIKORResult[] {
-    const results: VIKORResult[] = [];
-    
-    const sortedIndices = qValues
-      .map((q, index) => ({ q, index }))
+  private rankAlternatives(
+    sValues: number[],
+    rValues: number[],
+    qValues: number[]
+  ): VIKORResult[] {
+    const J = qValues.length;
+
+    // Sorted indices by Q ascending
+    const qRanked = qValues
+      .map((q, i) => ({ q, i }))
       .sort((a, b) => a.q - b.q)
-      .map(item => item.index);
+      .map(x => x.i);
 
-    for (let i = 0; i < qValues.length; i++) {
-      const index = sortedIndices[i];
-      const isAcceptable = this.checkAcceptability(qValues, index, sortedIndices);
-      
-      results.push({
-        projectId: `project-${index}`,
-        sValue: sValues[index],
-        rValue: rValues[index],
-        qValue: qValues[index],
-        rank: i + 1,
-        isAcceptable
-      });
-    }
+    // Sorted indices by S and R ascending (for C2)
+    const sRanked = sValues
+      .map((s, i) => ({ s, i }))
+      .sort((a, b) => a.s - b.s)
+      .map(x => x.i);
 
-    return results;
-  }
+    const rRanked = rValues
+      .map((r, i) => ({ r, i }))
+      .sort((a, b) => a.r - b.r)
+      .map(x => x.i);
 
-  private checkAcceptability(qValues: number[], currentIndex: number, sortedIndices: number[]): boolean {
-    if (sortedIndices.length < 2) return true;
-    
-    const firstQ = qValues[sortedIndices[0]];
-    const secondQ = qValues[sortedIndices[1]];
-    
-    const acceptableAdvantage = secondQ - firstQ >= 1 / (sortedIndices.length - 1);
-    
-    return acceptableAdvantage;
+    // C1: Q[2nd] - Q[1st] >= 1/(J-1)  — applies to the winner only
+    const c1Threshold = J > 1 ? 1 / (J - 1) : Infinity;
+    const c1Satisfied = J < 2 || (qValues[qRanked[1]] - qValues[qRanked[0]] >= c1Threshold);
+
+    // C2: Q-winner is also S-winner or R-winner
+    const qWinner = qRanked[0];
+    const c2Satisfied = sRanked[0] === qWinner || rRanked[0] === qWinner;
+
+    // Build result list ordered by Q rank
+    return qRanked.map((originalIdx, rank) => ({
+      projectId: `project-${originalIdx}`,
+      sValue: sValues[originalIdx],
+      rValue: rValues[originalIdx],
+      qValue: qValues[originalIdx],
+      rank: rank + 1,
+      c1Satisfied,
+      c2Satisfied,
+    }));
   }
 
   private safeNormalize(numerator: number, denominator: number): number {
-    if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) {
+    if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
       return 0;
     }
-
-    if (denominator === 0) {
-      return 0;
-    }
-
     return numerator / denominator;
   }
 

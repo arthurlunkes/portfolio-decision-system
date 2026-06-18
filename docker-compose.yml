@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: portfolio
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - '5430:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

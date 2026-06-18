@@ -86,4 +86,4 @@ else
   ./node_modules/.bin/tsx ./apps/backend/prisma/seed.ts
 fi
 
-exec ./node_modules/.bin/tsx watch ./apps/backend/src/index.ts
+exec ./node_modules/.bin/tsx ./apps/backend/src/index.ts

@@ -2,6 +2,7 @@ import Criteria from "@/pages/Criteria.vue";
 import Dashboard from "@/pages/Dashboard.vue";
 import Evaluations from "@/pages/Evaluations.vue";
 import Login from "@/pages/Login.vue";
+import Portfolios from "@/pages/Portfolios.vue";
 import Profile from "@/pages/Profile.vue";
 import Projects from "@/pages/Projects.vue";
 import Results from "@/pages/Results.vue";
@@ -34,6 +35,12 @@ const SEO_BY_ROUTE: Record<string, SeoMeta> = {
     title: "Dashboard | Portfolio Decision System",
     description:
       "Visao geral dos indicadores e desempenho do portfolio de projetos.",
+    robots: "noindex,nofollow",
+  },
+  Portfolios: {
+    title: "Portfólios | Portfolio Decision System",
+    description:
+      "Gerencie portfólios de projetos para análise multicriterio com Fuzzy VIKOR.",
     robots: "noindex,nofollow",
   },
   Projects: {
@@ -162,6 +169,12 @@ const routes = [
     path: "/dashboard",
     name: "Dashboard",
     component: Dashboard,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/portfolios",
+    name: "Portfolios",
+    component: Portfolios,
     meta: { requiresAuth: true },
   },
   {

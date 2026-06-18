@@ -20,7 +20,7 @@ ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
-COPY tsconfig.base.json turbo.json biome.json ./
+COPY tsconfig.base.json turbo.json ./
 COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
 COPY --from=deps /app/apps/backend/package.json ./apps/backend/package.json

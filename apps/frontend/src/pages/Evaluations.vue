@@ -12,6 +12,13 @@
         </p>
       </div>
 
+      <!-- Portfolio selector -->
+      <div class="w-64">
+        <AppSelect v-model="selectedPortfolioId" placeholder="Selecione um portfólio">
+          <option v-for="p in portfolios" :key="p.id" :value="p.id">{{ p.name }}</option>
+        </AppSelect>
+      </div>
+
       <!-- Project Selection -->
       <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2
@@ -145,7 +152,7 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               <button
                 v-for="term in linguisticTerms"
                 :key="term.value"
@@ -198,15 +205,18 @@
 
 <script setup lang="ts">
 import AppButton from "@/components/ui/AppButton.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
+import { usePortfolioContext } from "@/composables/usePortfolioContext";
 import { useAuthStore } from "@/stores/auth";
 import { getProjects } from "@/services/api/projects";
 import { getCriteria } from "@/services/api/criteria";
 import { getEvaluations, createEvaluation } from "@/services/api/evaluations";
 import type { Evaluation as ApiEvaluation } from "@/services/api/evaluations";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 const authStore = useAuthStore();
+const { portfolios, selectedPortfolioId } = usePortfolioContext();
 
 interface Project {
   id: string;
@@ -234,24 +244,24 @@ const saving = ref(false);
 const pageError = ref("");
 
 const linguisticTerms = [
-  { value: "very-low", label: "Muito Baixo" },
-  { value: "low", label: "Baixo" },
-  { value: "medium-low", label: "Médio-Baixo" },
-  { value: "medium", label: "Médio" },
-  { value: "medium-high", label: "Médio-Alto" },
-  { value: "high", label: "Alto" },
-  { value: "very-high", label: "Muito Alto" },
+  { value: "MB", label: "Muito Baixo (MB)" },
+  { value: "B",  label: "Baixo (B)" },
+  { value: "M",  label: "Médio (M)" },
+  { value: "A",  label: "Alto (A)" },
+  { value: "MA", label: "Muito Alto (MA)" },
 ];
 
-onMounted(async () => {
+async function loadData() {
+  if (!selectedPortfolioId.value) return;
   try {
     const [p, c, e] = await Promise.all([
-      getProjects(),
-      getCriteria(),
+      getProjects(selectedPortfolioId.value),
+      getCriteria(selectedPortfolioId.value),
       getEvaluations(),
     ]);
     projects.value = p;
     criteria.value = c;
+    selectedProject.value = null;
     evaluations.value = e.map((ev: ApiEvaluation) => ({
       projectId: ev.project.id,
       criterionId: ev.criterion.id,
@@ -260,7 +270,10 @@ onMounted(async () => {
   } catch {
     pageError.value = "Erro ao carregar dados.";
   }
-});
+}
+
+onMounted(loadData);
+watch(selectedPortfolioId, loadData);
 
 const completedEvaluations = computed(() => {
   if (!selectedProject.value) return 0;

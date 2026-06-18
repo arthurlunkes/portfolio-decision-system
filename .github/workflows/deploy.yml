@@ -6,8 +6,28 @@ on:
       - main
 
 jobs:
+  validate:
+    name: Build & Type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Type-check backend
+        run: yarn workspace @portfolio/backend build
+
   deploy:
     name: Deploy via SSH
+    needs: validate
     runs-on: ubuntu-latest
 
     steps:

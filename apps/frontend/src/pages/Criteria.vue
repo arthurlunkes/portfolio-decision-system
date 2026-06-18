@@ -25,6 +25,13 @@
           </AppButton>
         </div>
 
+        <!-- Portfolio selector -->
+        <div class="w-64">
+          <AppSelect v-model="selectedPortfolioId" placeholder="Selecione um portfólio">
+            <option v-for="p in portfolios" :key="p.id" :value="p.id">{{ p.name }}</option>
+          </AppSelect>
+        </div>
+
         <!-- Weight Validation Alert -->
         <AppAlert v-if="!isWeightValid && !loading" variant="warning">
           A soma total dos pesos deve ser igual a 100%. Atual:
@@ -305,6 +312,8 @@ import AppAlert from "@/components/ui/AppAlert.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppInput from "@/components/ui/AppInput.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
+import { usePortfolioContext } from "@/composables/usePortfolioContext";
 import { useAuthStore } from "@/stores/auth";
 import {
   createCriterion as apiCreate,
@@ -313,9 +322,10 @@ import {
   updateCriterion as apiUpdate,
 } from "@/services/api/criteria";
 import type { Criterion } from "@/services/api/criteria";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 const authStore = useAuthStore();
+const { portfolios, selectedPortfolioId } = usePortfolioContext();
 
 const showAddModal = ref(false);
 const showEditModal = ref(false);
@@ -332,23 +342,27 @@ const criterionForm = ref({
 
 const criteria = ref<Criterion[]>([]);
 
-onMounted(async () => {
+async function loadCriteria() {
+  if (!selectedPortfolioId.value) return;
   loading.value = true;
   try {
-    criteria.value = await getCriteria();
+    criteria.value = await getCriteria(selectedPortfolioId.value);
   } catch {
     pageError.value = "Erro ao carregar critérios.";
   } finally {
     loading.value = false;
   }
-});
+}
+
+onMounted(loadCriteria);
+watch(selectedPortfolioId, loadCriteria);
 
 const totalWeight = computed(() => {
   return criteria.value.reduce((sum, criterion) => sum + criterion.weight, 0);
 });
 
 const isWeightValid = computed(() => {
-  return totalWeight.value === 100;
+  return Math.abs(totalWeight.value - 100) < 0.01;
 });
 
 const editCriterion = (criterion: Criterion) => {
@@ -370,6 +384,7 @@ const saveCriterion = async () => {
   try {
     if (showEditModal.value) {
       const updated = await apiUpdate(criterionForm.value.id, {
+        portfolioId: selectedPortfolioId.value,
         name: criterionForm.value.name,
         description: criterionForm.value.description,
         weight: Number(criterionForm.value.weight),
@@ -379,6 +394,7 @@ const saveCriterion = async () => {
       if (idx !== -1) criteria.value[idx] = updated;
     } else {
       const created = await apiCreate({
+        portfolioId: selectedPortfolioId.value,
         name: criterionForm.value.name,
         description: criterionForm.value.description,
         weight: Number(criterionForm.value.weight),

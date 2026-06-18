@@ -13,6 +13,11 @@
             </p>
           </div>
           <div class="flex flex-wrap items-center justify-end gap-3">
+            <div class="w-52">
+              <AppSelect v-model="selectedPortfolioId" placeholder="Selecione um portfólio">
+                <option v-for="p in portfolios" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </AppSelect>
+            </div>
             <AppButton variant="secondary" @click="exportResults('pdf')">
               Exportar PDF
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,6 +68,24 @@
           {{ pageError }}
         </div>
 
+        <!-- VIKOR Condition Warnings -->
+        <template v-if="rankingResults.length > 0">
+          <div
+            v-if="!rankingResults[0].c1Satisfied"
+            class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          >
+            <strong>Condição C1 não satisfeita:</strong> A diferença entre o 1° e o 2° colocado por Q
+            é inferior a 1/(J−1). O sistema propõe um conjunto de compromisso em vez de um único vencedor.
+          </div>
+          <div
+            v-if="!rankingResults[0].c2Satisfied"
+            class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          >
+            <strong>Condição C2 não satisfeita:</strong> O projeto melhor classificado por Q não é o
+            melhor por S nem por R. O resultado requer análise adicional de estabilidade.
+          </div>
+        </template>
+
         <!-- Ranking Table -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-6 py-4 border-b border-gray-100">
@@ -98,6 +121,16 @@
                     class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
                   >
                     Valor Q
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Cond. C1
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                  >
+                    Cond. C2
                   </th>
                   <th
                     class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
@@ -153,6 +186,22 @@
                     <span class="text-sm font-semibold text-gray-900 font-mono">{{
                       result.qValue.toFixed(3)
                     }}</span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                      :class="result.c1Satisfied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                    >
+                      {{ result.c1Satisfied ? "✓" : "✗" }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                      :class="result.c2Satisfied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                    >
+                      {{ result.c2Satisfied ? "✓" : "✗" }}
+                    </span>
                   </td>
                   <td class="px-6 py-4">
                     <span
@@ -222,8 +271,10 @@
 <script setup lang="ts">
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppButton from "@/components/ui/AppButton.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
 import { useTheme } from "@/composables/useTheme";
-import { getVikorRanking } from "@/services/api/results";
+import { usePortfolioContext } from "@/composables/usePortfolioContext";
+import { calculateVIKOR, getVikorRanking } from "@/services/api/results";
 import { useAuthStore } from "@/stores/auth";
 import {
   BarController,
@@ -244,6 +295,7 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
 const { isDark } = useTheme();
+const { portfolios, selectedPortfolioId } = usePortfolioContext();
 
 Chart.register(
   BarController,
@@ -268,6 +320,8 @@ interface RankingResult {
   qValue: number;
   rank: number;
   isAcceptable: boolean;
+  c1Satisfied: boolean;
+  c2Satisfied: boolean;
 }
 
 const barChart = ref<HTMLCanvasElement>();
@@ -281,10 +335,14 @@ let barChartInstance: Chart | null = null;
 let radarChartInstance: Chart | null = null;
 
 const calculateRanking = async () => {
+  if (!selectedPortfolioId.value) {
+    pageError.value = "Selecione um portfólio antes de calcular o ranking.";
+    return;
+  }
   calculating.value = true;
   pageError.value = "";
   try {
-    const results = await getVikorRanking();
+    const results = await calculateVIKOR(selectedPortfolioId.value);
     rankingResults.value = results
       .slice()
       .sort((a, b) => a.rank - b.rank)
@@ -296,6 +354,8 @@ const calculateRanking = async () => {
         qValue: r.qValue,
         rank: r.rank,
         isAcceptable: r.isAcceptable,
+        c1Satisfied: r.c1Satisfied,
+        c2Satisfied: r.c2Satisfied,
       }));
     await nextTick();
     createBarChart();

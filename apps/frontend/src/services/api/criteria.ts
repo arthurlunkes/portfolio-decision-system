@@ -2,20 +2,25 @@ import { gql } from './client'
 
 export interface Criterion {
   id: string
+  portfolioId: string
   name: string
   description: string
   weight: number
   type: 'BENEFIT' | 'COST'
 }
 
-const FIELDS = 'id name description weight type'
+const FIELDS = 'id portfolioId name description weight type'
 
-export async function getCriteria(): Promise<Criterion[]> {
-  const data = await gql<{ criteria: Criterion[] }>(`query { criteria { ${FIELDS} } }`)
+export async function getCriteria(portfolioId?: string): Promise<Criterion[]> {
+  const data = await gql<{ criteria: Criterion[] }>(
+    `query($portfolioId: ID) { criteria(portfolioId: $portfolioId) { ${FIELDS} } }`,
+    { portfolioId },
+  )
   return data.criteria
 }
 
 export async function createCriterion(input: {
+  portfolioId: string
   name: string
   description: string
   weight: number
@@ -30,7 +35,7 @@ export async function createCriterion(input: {
 
 export async function updateCriterion(
   id: string,
-  input: { name: string; description: string; weight: number; type: 'BENEFIT' | 'COST' },
+  input: { portfolioId: string; name: string; description: string; weight: number; type: 'BENEFIT' | 'COST' },
 ): Promise<Criterion> {
   const data = await gql<{ updateCriterion: Criterion }>(
     `mutation($id: ID!, $input: CreateCriterionInput!) { updateCriterion(id: $id, input: $input) { ${FIELDS} } }`,
