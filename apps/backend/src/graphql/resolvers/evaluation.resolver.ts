@@ -15,11 +15,14 @@ export const evaluationResolvers = {
   Query: {
     evaluations: (
       _: unknown,
-      { projectId }: { projectId?: string },
+      { projectId, evaluatorId }: { projectId?: string; evaluatorId?: string },
       ctx: Context,
     ) => {
-      requireAuth(ctx);
-      const where = projectId ? { projectId } : {};
+      const user = requireAuth(ctx);
+      const where: Record<string, unknown> = {
+        evaluatorId: evaluatorId ?? user.id,
+      };
+      if (projectId) where.projectId = projectId;
       return prisma.evaluation.findMany({ where, include: EVALUATION_INCLUDE });
     },
   },

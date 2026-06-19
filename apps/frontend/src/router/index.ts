@@ -1,6 +1,7 @@
 import Criteria from "@/pages/Criteria.vue";
 import Dashboard from "@/pages/Dashboard.vue";
 import Evaluations from "@/pages/Evaluations.vue";
+import EvaluationsAdmin from "@/pages/EvaluationsAdmin.vue";
 import Login from "@/pages/Login.vue";
 import Portfolios from "@/pages/Portfolios.vue";
 import Profile from "@/pages/Profile.vue";
@@ -219,6 +220,12 @@ const routes = [
     component: RolesManager,
     meta: { requiresAuth: true },
   },
+  {
+    path: "/evaluations-admin",
+    name: "EvaluationsAdmin",
+    component: EvaluationsAdmin,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
@@ -226,7 +233,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const token = sessionStorage.getItem("auth.token");
   const authenticated = !!token && !isSessionExpired();
 

@@ -170,7 +170,7 @@ export const typeDefs = `
     project(id: ID!): Project
     criteria(portfolioId: ID): [Criterion!]!
     criterion(id: ID!): Criterion
-    evaluations(projectId: ID): [Evaluation!]!
+    evaluations(projectId: ID, evaluatorId: ID): [Evaluation!]!
     vikorRanking(portfolioId: ID!): [VIKORResult!]!
     rankingHistory(portfolioId: ID!): [Ranking!]!
     users: [User!]!

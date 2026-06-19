@@ -123,6 +123,7 @@ const defaultNavItems = computed(() => {
     { to: "/results", label: "Resultados" },
     { to: "/users", label: "Decisores" },
     { to: "/roles", label: "Atribuições" },
+    ...(isAdmin.value ? [{ to: "/evaluations-admin", label: "Avaliações (Admin)" }] : []),
   ];
 
   return items;
