@@ -114,7 +114,7 @@ export const roleResolvers = {
       const name = input.name.trim().toUpperCase();
       if (!name) throw new Error("Nome do papel e obrigatorio");
 
-      const systemNames = getSystemRoles().map((r) => r.name);
+      const systemNames: string[] = getSystemRoles().map((r) => r.name);
       if (systemNames.includes(name))
         throw new Error("Ja existe um papel com esse nome");
       if (await nameExistsInDb(name))
@@ -206,7 +206,7 @@ export const roleResolvers = {
       const name = newName.trim().toUpperCase();
       if (!name) throw new Error("Nome do novo papel e obrigatorio");
 
-      const systemNames = systemRoles.map((r) => r.name);
+      const systemNames: string[] = systemRoles.map((r) => r.name);
       if (systemNames.includes(name))
         throw new Error("Ja existe um papel com esse nome");
       if (await nameExistsInDb(name))
