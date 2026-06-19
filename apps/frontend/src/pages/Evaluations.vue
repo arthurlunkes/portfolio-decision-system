@@ -152,7 +152,7 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               <button
                 v-for="term in linguisticTerms"
                 :key="term.value"
@@ -244,11 +244,13 @@ const saving = ref(false);
 const pageError = ref("");
 
 const linguisticTerms = [
+  { value: "EB", label: "Extremamente Baixo (EB)" },
   { value: "MB", label: "Muito Baixo (MB)" },
   { value: "B",  label: "Baixo (B)" },
   { value: "M",  label: "Médio (M)" },
   { value: "A",  label: "Alto (A)" },
   { value: "MA", label: "Muito Alto (MA)" },
+  { value: "EA", label: "Extremamente Alto (EA)" },
 ];
 
 async function loadData() {
