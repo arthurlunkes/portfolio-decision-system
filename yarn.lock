@@ -247,7 +247,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@certa/eslint-config-base@workspace:*, @certa/eslint-config-base@workspace:configs/eslint-config-base":
+"@certa/eslint-config-base@workspace:configs/eslint-config-base":
   version: 0.0.0-use.local
   resolution: "@certa/eslint-config-base@workspace:configs/eslint-config-base"
   peerDependencies:
@@ -259,7 +259,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@certa/eslint-config-node@workspace:*, @certa/eslint-config-node@workspace:configs/eslint-config-node":
+"@certa/eslint-config-node@workspace:configs/eslint-config-node":
   version: 0.0.0-use.local
   resolution: "@certa/eslint-config-node@workspace:configs/eslint-config-node"
   peerDependencies:
@@ -268,41 +268,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@certa/eslint-config-vue@workspace:*, @certa/eslint-config-vue@workspace:configs/eslint-config-vue":
+"@certa/eslint-config-vue@workspace:configs/eslint-config-vue":
   version: 0.0.0-use.local
   resolution: "@certa/eslint-config-vue@workspace:configs/eslint-config-vue"
   peerDependencies:
     "@typescript-eslint/eslint-plugin": ">=8.0.0"
     "@typescript-eslint/parser": ">=8.0.0"
     eslint: ">=9.0.0"
-    eslint-plugin-vue: ">=10.0.0"
-    globals: ">=16.0.0"
-    vue-eslint-parser: ">=10.0.0"
-  languageName: unknown
-  linkType: soft
-
-"@certa/eslint-config@workspace:configs/eslint-config":
-  version: 0.0.0-use.local
-  resolution: "@certa/eslint-config@workspace:configs/eslint-config"
-  dependencies:
-    "@certa/eslint-config-base": "workspace:*"
-    "@certa/eslint-config-node": "workspace:*"
-    "@certa/eslint-config-vue": "workspace:*"
-    "@eslint/js": "npm:^9.39.1"
-    "@typescript-eslint/eslint-plugin": "npm:^8.46.3"
-    "@typescript-eslint/parser": "npm:^8.46.3"
-    eslint: "npm:^9.30.0"
-    eslint-config-prettier: "npm:^10.1.8"
-    eslint-plugin-vue: "npm:^10.5.1"
-    globals: "npm:^16.5.0"
-    typescript: "npm:^5.9.0"
-    vue-eslint-parser: "npm:^10.2.0"
-  peerDependencies:
-    "@eslint/js": ">=9.0.0"
-    "@typescript-eslint/eslint-plugin": ">=8.0.0"
-    "@typescript-eslint/parser": ">=8.0.0"
-    eslint: ">=9.0.0"
-    eslint-config-prettier: ">=10.0.0"
     eslint-plugin-vue: ">=10.0.0"
     globals: ">=16.0.0"
     vue-eslint-parser: ">=10.0.0"
