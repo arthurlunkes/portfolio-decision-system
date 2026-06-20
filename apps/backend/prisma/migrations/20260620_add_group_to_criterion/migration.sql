@@ -1,0 +1,1 @@
+ALTER TABLE "criteria" ADD COLUMN "group" TEXT NOT NULL DEFAULT '';

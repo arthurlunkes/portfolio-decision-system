@@ -22,7 +22,7 @@ export const criterionResolvers = {
   Mutation: {
     createCriterion: (
       _: unknown,
-      { input }: { input: { portfolioId: string; name: string; description: string; weight: number; type: string } },
+      { input }: { input: { portfolioId: string; name: string; description?: string; group?: string; type: string } },
       ctx: Context,
     ) => {
       requireAuth(ctx);
@@ -30,8 +30,9 @@ export const criterionResolvers = {
         data: {
           portfolioId: input.portfolioId,
           name: input.name,
-          description: input.description,
-          weight: input.weight,
+          description: input.description ?? "",
+          group: input.group ?? "",
+          weight: 0, // calculado automaticamente via avaliações de importância
           type: input.type as any,
         },
         include: CRITERION_INCLUDE,
@@ -39,7 +40,7 @@ export const criterionResolvers = {
     },
     updateCriterion: (
       _: unknown,
-      { id, input }: { id: string; input: { portfolioId: string; name: string; description: string; weight: number; type: string } },
+      { id, input }: { id: string; input: { portfolioId: string; name: string; description?: string; group?: string; type: string } },
       ctx: Context,
     ) => {
       requireAuth(ctx);
@@ -48,9 +49,10 @@ export const criterionResolvers = {
         data: {
           portfolioId: input.portfolioId,
           name: input.name,
-          description: input.description,
-          weight: input.weight,
+          description: input.description ?? "",
+          group: input.group ?? "",
           type: input.type as any,
+          // weight não é alterado aqui: calculado pelo motor VIKOR
         },
         include: CRITERION_INCLUDE,
       });

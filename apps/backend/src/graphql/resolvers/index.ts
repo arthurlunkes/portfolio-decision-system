@@ -1,4 +1,6 @@
 import { criterionResolvers } from "./criterion.resolver.js";
+import { criterionImportanceResolvers } from "./criterion-importance.resolver.js";
+import { decissorPortfolioResolvers } from "./decissor-portfolio.resolver.js";
 import { evaluationResolvers } from "./evaluation.resolver.js";
 import { permissionResolvers } from "./permission.resolver.js";
 import { portfolioResolvers } from "./portfolio.resolver.js";
@@ -17,6 +19,8 @@ export const resolvers = {
     ...userResolvers.Query,
     ...roleResolvers.Query,
     ...permissionResolvers.Query,
+    ...decissorPortfolioResolvers.Query,
+    ...criterionImportanceResolvers.Query,
   },
   Mutation: {
     ...portfolioResolvers.Mutation,
@@ -26,6 +30,8 @@ export const resolvers = {
     ...resultResolvers.Mutation,
     ...userResolvers.Mutation,
     ...roleResolvers.Mutation,
+    ...decissorPortfolioResolvers.Mutation,
+    ...criterionImportanceResolvers.Mutation,
   },
   Evaluation: evaluationResolvers.Evaluation,
 };

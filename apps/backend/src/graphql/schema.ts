@@ -22,8 +22,10 @@ export const typeDefs = `
     portfolioId: ID!
     name: String!
     description: String!
+    group: String!
     weight: Float!
     type: CriterionType!
+    createdAt: String!
     evaluations: [Evaluation!]!
   }
 
@@ -163,6 +165,46 @@ export const typeDefs = `
     actions: [Action!]!
   }
 
+  # Avaliação de importância de critério por decisor (para cálculo de ωj)
+  type CriterionImportance {
+    id: ID!
+    criterion: Criterion!
+    evaluator: User!
+    portfolioId: ID!
+    linguisticTerm: String!
+    numericValue: Float!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  # Peso calculado do critério: Δj (média ponderada) e ωj (normalizado)
+  type CriterionComputedWeight {
+    criterionId: ID!
+    criterionName: String!
+    delta: Float!
+    omega: Float!
+    omegaPct: Float!
+  }
+
+  # Escala linguística de expertise do decisor (λk)
+  # EN(0)=Extremamente Não importante … IM(4)=Importante (default) … EM(6)=Extremamente importante
+  type DecissorPortfolio {
+    id: ID!
+    portfolioId: ID!
+    evaluatorId: ID!
+    evaluator: User!
+    weightLinguistic: String!
+    weightNumeric: Float!
+    weightNormalized: Float!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type ExpertiseScaleTerm {
+    label: String!
+    value: Int!
+  }
+
   type Query {
     portfolios: [Portfolio!]!
     portfolio(id: ID!): Portfolio
@@ -184,6 +226,9 @@ export const typeDefs = `
     allRoles: [CustomRole!]!
     role(id: ID!): CustomRole
     availablePermissions: AvailablePermissions!
+    decissorPortfolios(portfolioId: ID!): [DecissorPortfolio!]!
+    criterionImportances(portfolioId: ID!, evaluatorId: ID): [CriterionImportance!]!
+    computedCriterionWeights(portfolioId: ID!): [CriterionComputedWeight!]!
   }
 
   input CreatePortfolioInput {
@@ -194,14 +239,14 @@ export const typeDefs = `
   input CreateProjectInput {
     portfolioId: ID!
     name: String!
-    description: String!
+    description: String
   }
 
   input CreateCriterionInput {
     portfolioId: ID!
     name: String!
-    description: String!
-    weight: Float!
+    description: String
+    group: String
     type: CriterionType!
   }
 
@@ -272,5 +317,13 @@ export const typeDefs = `
     cloneRole(id: ID!, newName: String!): CustomRole!
 
     calculateVIKOR(portfolioId: ID!): [VIKORResult!]!
+
+    # Gestão de pesos linguísticos de expertise por portfólio (λk)
+    upsertDecissorPortfolio(portfolioId: ID!, evaluatorId: ID!, weightLinguistic: String!): DecissorPortfolio!
+    deleteDecissorPortfolio(portfolioId: ID!, evaluatorId: ID!): Boolean!
+
+    # Avaliação de importância de critério (ωj)
+    upsertCriterionImportance(criterionId: ID!, portfolioId: ID!, linguisticTerm: String!): CriterionImportance!
+    deleteCriterionImportance(id: ID!): Boolean!
   }
 `;

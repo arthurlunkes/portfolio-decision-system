@@ -10,7 +10,12 @@
             <h1 class="text-2xl font-bold text-gray-900">Projetos</h1>
             <p class="text-sm text-gray-500 mt-0.5">Gerencie os projetos do portfólio</p>
           </div>
-          <AppButton variant="primary" @click="showAddModal = true">
+          <AppButton
+            variant="primary"
+            :disabled="!selectedPortfolioId"
+            :title="!selectedPortfolioId ? 'Selecione um portfólio primeiro' : undefined"
+            @click="selectedPortfolioId && (showAddModal = true)"
+          >
             Adicionar Projeto
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -168,7 +173,6 @@
                   id="projectDescription"
                   v-model="projectForm.description"
                   rows="3"
-                  required
                   placeholder="Descreva o projeto..."
                   class="w-full px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-300 bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
                 />
@@ -270,6 +274,10 @@ const deleteProject = async (project: Project) => {
 };
 
 const saveProject = async () => {
+  if (!selectedPortfolioId.value) {
+    pageError.value = "Selecione um portfólio antes de salvar o projeto.";
+    return;
+  }
   try {
     if (showEditModal.value) {
       const updated = await apiUpdate(projectForm.value.id, {

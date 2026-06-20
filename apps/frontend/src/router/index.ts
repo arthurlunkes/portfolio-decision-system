@@ -1,5 +1,6 @@
 import Criteria from "@/pages/Criteria.vue";
 import Dashboard from "@/pages/Dashboard.vue";
+import DecissorWeights from "@/pages/DecissorWeights.vue";
 import Evaluations from "@/pages/Evaluations.vue";
 import EvaluationsAdmin from "@/pages/EvaluationsAdmin.vue";
 import Login from "@/pages/Login.vue";
@@ -224,6 +225,12 @@ const routes = [
     path: "/evaluations-admin",
     name: "EvaluationsAdmin",
     component: EvaluationsAdmin,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/decissor-weights",
+    name: "DecissorWeights",
+    component: DecissorWeights,
     meta: { requiresAuth: true },
   },
 ];

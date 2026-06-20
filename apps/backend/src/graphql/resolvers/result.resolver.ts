@@ -1,6 +1,8 @@
 import { randomUUID } from "crypto";
 import prisma from "../../core/config/database.config.js";
+import { CriterionWeightService } from "../../modules/criteria/services/criterion-weight.service.js";
 import type { CriterionType } from "../../modules/criteria/entities/criterion.entity.js";
+import { DecissorWeightService } from "../../modules/decissor/services/decissor-weight.service.js";
 import { TupleAggregationService } from "../../modules/tuple2/services/aggregation.service.js";
 import { TupleConversionService } from "../../modules/tuple2/services/tuple-conversion.service.js";
 import { VIKORCalculationService } from "../../modules/vikor/services/vikor-calculation.service.js";
@@ -9,27 +11,50 @@ import { requireAuth, type Context } from "../context.js";
 const vikorService = new VIKORCalculationService();
 const aggregationService = new TupleAggregationService();
 const tupleService = new TupleConversionService();
+const decissorWeightService = new DecissorWeightService();
+const criterionWeightService = new CriterionWeightService();
 
 async function computeVIKOR(portfolioId: string) {
-  const projects = await prisma.project.findMany({
-    where: { portfolioId },
-    include: { evaluations: true },
-    orderBy: { createdAt: "asc" },
-  });
-  const criteria = await prisma.criterion.findMany({
-    where: { portfolioId },
-    orderBy: { createdAt: "asc" },
-  });
+  const [projects, criteria, decissorLinks, importances] = await Promise.all([
+    prisma.project.findMany({
+      where: { portfolioId },
+      include: { evaluations: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.criterion.findMany({
+      where: { portfolioId },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.decissorPortfolio.findMany({ where: { portfolioId } }),
+    prisma.criterionImportance.findMany({ where: { portfolioId } }),
+  ]);
 
   if (projects.length === 0 || criteria.length === 0) return [];
 
-  const weightSum = criteria.reduce((s, c) => s + c.weight, 0);
-  if (Math.abs(weightSum - 100) > 0.01) {
-    throw new Error(
-      `A soma dos pesos dos critérios deve ser 100%. Soma atual: ${weightSum.toFixed(2)}%`,
-    );
-  }
+  // Build λk map for decisor weighting (from DecissorPortfolio; falls back to 1/n)
+  const lambdaMap = decissorWeightService.buildLambdaMap(
+    decissorLinks.length > 0 ? decissorLinks : [],
+  );
 
+  // --- PESOS DOS CRITÉRIOS (ωj) calculados via avaliações de importância ---
+  const criterionWeights = criterionWeightService.compute(
+    criteria.map((c) => c.id),
+    importances,
+    lambdaMap.size > 0 ? lambdaMap : undefined,
+  );
+  const omegaMap = new Map(criterionWeights.map((cw) => [cw.criterionId, cw.omega]));
+
+  // Persiste os pesos calculados de volta no campo weight de cada critério (auditoria)
+  await Promise.all(
+    criterionWeights.map((cw) =>
+      prisma.criterion.update({
+        where: { id: cw.criterionId },
+        data: { weight: cw.omegaPct },
+      }),
+    ),
+  );
+
+  // --- MATRIZ DE DECISÃO: agrega avaliações de desempenho por decisor ---
   const matrix = projects.map((project) =>
     criteria.map((criterion) => {
       const evsForPair = project.evaluations.filter(
@@ -38,14 +63,19 @@ async function computeVIKOR(portfolioId: string) {
       if (evsForPair.length === 0) return 0;
       if (evsForPair.length === 1) return evsForPair[0].fuzzyValue;
 
-      const aggregated = aggregationService.aggregateScalars(
-        evsForPair.map((e) => e.fuzzyValue),
-      );
+      const fuzzyValues = evsForPair.map((e) => e.fuzzyValue);
+      const decissorWeights =
+        lambdaMap.size > 0
+          ? evsForPair.map((e) => lambdaMap.get(e.evaluatorId) ?? (1 / evsForPair.length))
+          : undefined;
+
+      const aggregated = aggregationService.aggregateScalars(fuzzyValues, decissorWeights);
       return tupleService.convert2TupleToFuzzy(aggregated);
     }),
   );
 
-  const weights = criteria.map((c) => c.weight / 100);
+  // ωj em [0,1] para o motor VIKOR (soma = 1,0)
+  const weights = criteria.map((c) => omegaMap.get(c.id) ?? 0);
   const types = criteria.map((c) => c.type as CriterionType);
   const rawResults = vikorService.calculateVIKOR(matrix, weights, types);
 

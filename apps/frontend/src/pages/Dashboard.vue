@@ -10,6 +10,36 @@
           <p class="text-gray-500 mt-1 text-sm">Aqui está um resumo do seu portfólio hoje.</p>
         </div>
 
+        <!-- Portfolio selector -->
+        <div class="w-64">
+          <AppSelect v-model="selectedPortfolioId" placeholder="Selecione um portfólio">
+            <option v-for="p in portfolios" :key="p.id" :value="p.id">{{ p.name }}</option>
+          </AppSelect>
+        </div>
+
+        <!-- Informative empty states -->
+        <div
+          v-if="!loadingPortfolios && portfolios.length === 0"
+          class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+        >
+          Crie um portfólio para começar a organizar seus projetos e avaliações.
+        </div>
+
+        <div
+          v-else-if="!loading && selectedPortfolioId && stats.projects < 2"
+          class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          Você deve ter ao menos 2 projetos no portfólio para que o sistema de ranking comece a funcionar.
+          Atualmente há <strong>{{ stats.projects }}</strong> projeto(s) cadastrado(s).
+        </div>
+
+        <div
+          v-else-if="!loading && selectedPortfolioId && stats.projects >= 2 && recentResults.length === 0"
+          class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          Avalie ao menos 2 projetos em todos os critérios e calcule o ranking para visualizar os resultados.
+        </div>
+
         <div
           v-if="pageError"
           class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -26,7 +56,7 @@
         </div>
 
         <!-- Cards de estatísticas -->
-        <section v-else>
+        <section v-else-if="selectedPortfolioId">
           <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
             Visão Geral
           </h2>
@@ -89,7 +119,7 @@
         </section>
 
         <!-- Resultados recentes -->
-        <section>
+        <section v-if="selectedPortfolioId">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
               Resultados Recentes
@@ -128,7 +158,7 @@
             </div>
 
             <div v-if="!recentResults.length" class="px-6 py-10 text-center text-gray-400 text-sm">
-              Nenhum resultado disponível ainda.
+              Nenhum resultado disponível ainda. Calcule o ranking na página de Resultados.
             </div>
           </div>
         </section>
@@ -140,15 +170,18 @@
 <script setup lang="ts">
 import ActionCard from "@/components/ui/ActionCard.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
 import StatCard from "@/components/ui/StatCard.vue";
 import { getCriteria } from "@/services/api/criteria";
 import { getEvaluations } from "@/services/api/evaluations";
 import { getProjects } from "@/services/api/projects";
 import { getVikorRanking } from "@/services/api/results";
+import { usePortfolioContext } from "@/composables/usePortfolioContext";
 import { useAuthStore } from "@/stores/auth";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 
 const authStore = useAuthStore();
+const { portfolios, selectedPortfolioId, loadingPortfolios } = usePortfolioContext();
 
 const stats = ref({
   projects: 0,
@@ -175,50 +208,24 @@ function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-function buildBadge(
-  score: number,
-  isAcceptable: boolean,
-): {
-  badge: string;
-  badgeClass: string;
-} {
-  if (!isAcceptable) {
-    return {
-      badge: "Não aceitável",
-      badgeClass: "bg-red-100 text-red-700",
-    };
-  }
-
-  if (score >= 0.8) {
-    return {
-      badge: "Excelente",
-      badgeClass: "bg-green-100 text-green-700",
-    };
-  }
-
-  if (score >= 0.6) {
-    return {
-      badge: "Bom",
-      badgeClass: "bg-blue-100 text-blue-700",
-    };
-  }
-
-  return {
-    badge: "Regular",
-    badgeClass: "bg-amber-100 text-amber-700",
-  };
+function buildBadge(score: number, isAcceptable: boolean): { badge: string; badgeClass: string } {
+  if (!isAcceptable) return { badge: "Não aceitável", badgeClass: "bg-red-100 text-red-700" };
+  if (score >= 0.8) return { badge: "Excelente", badgeClass: "bg-green-100 text-green-700" };
+  if (score >= 0.6) return { badge: "Bom", badgeClass: "bg-blue-100 text-blue-700" };
+  return { badge: "Regular", badgeClass: "bg-amber-100 text-amber-700" };
 }
 
 async function loadDashboard() {
+  if (!selectedPortfolioId.value) return;
   loading.value = true;
   pageError.value = "";
 
   try {
     const [projects, criteria, evaluations, ranking] = await Promise.all([
-      getProjects(),
-      getCriteria(),
+      getProjects(selectedPortfolioId.value),
+      getCriteria(selectedPortfolioId.value),
       getEvaluations(),
-      getVikorRanking(),
+      getVikorRanking(selectedPortfolioId.value),
     ]);
 
     const totalPossibleEvaluations = projects.length * criteria.length;
@@ -228,7 +235,7 @@ async function loadDashboard() {
       projects: projects.length,
       criteria: criteria.length,
       pendingEvaluations,
-      lastRankingDate: ranking.length > 0 ? "Hoje" : "Sem ranking",
+      lastRankingDate: ranking.length > 0 ? "Calculado" : "Sem ranking",
     };
 
     recentResults.value = ranking
@@ -238,7 +245,6 @@ async function loadDashboard() {
       .map((result) => {
         const score = clamp01(1 - result.qValue);
         const badge = buildBadge(score, result.isAcceptable);
-
         return {
           projectId: result.project.id,
           rank: result.rank,
@@ -248,15 +254,24 @@ async function loadDashboard() {
           badgeClass: badge.badgeClass,
         };
       });
-  } catch {
-    pageError.value =
-      "Não foi possível carregar os dados da dashboard agora. Tente novamente em instantes.";
+  } catch (err: any) {
+    const msg = err?.message ?? "";
+    if (msg.includes("pesos") || msg.includes("peso")) {
+      pageError.value = msg;
+    } else if (msg.includes("projetos") || msg.includes("critérios")) {
+      pageError.value = msg;
+    }
+    // Other errors (no data yet) are silently ignored — empty state messages handle it
   } finally {
     loading.value = false;
   }
 }
 
 onMounted(() => {
-  loadDashboard();
+  watch(selectedPortfolioId, () => {
+    recentResults.value = [];
+    stats.value = { projects: 0, criteria: 0, pendingEvaluations: 0, lastRankingDate: "Sem ranking" };
+    loadDashboard();
+  }, { immediate: true });
 });
 </script>

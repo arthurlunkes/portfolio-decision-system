@@ -221,6 +221,50 @@
           </div>
         </div>
 
+        <!-- Criterion Weights Table -->
+        <div v-if="criterionWeights.length > 0" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+              Pesos dos Critérios (ωj)
+            </h2>
+            <span class="text-xs text-gray-400">calculados via avaliações de importância</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/60">
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Critério</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Δj</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ωj (%)</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-48">Distribuição</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr v-for="cw in criterionWeights" :key="cw.criterionId" class="hover:bg-gray-50/60 transition-colors">
+                  <td class="px-6 py-4 font-semibold text-gray-900 text-sm">{{ cw.criterionName }}</td>
+                  <td class="px-6 py-4 text-sm font-mono text-gray-600">{{ cw.delta.toFixed(4) }}</td>
+                  <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ cw.omegaPct.toFixed(2) }}%</td>
+                  <td class="px-6 py-4">
+                    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-2 bg-primary-500 rounded-full" :style="{ width: cw.omegaPct + '%' }" />
+                    </div>
+                  </td>
+                </tr>
+                <tr class="bg-gray-50/40 border-t border-gray-200">
+                  <td class="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Σ</td>
+                  <td class="px-6 py-3 text-sm font-mono font-semibold text-gray-700">
+                    {{ criterionWeights.reduce((a, c) => a + c.delta, 0).toFixed(4) }}
+                  </td>
+                  <td class="px-6 py-3 text-sm font-bold text-gray-900">
+                    {{ criterionWeights.reduce((a, c) => a + c.omegaPct, 0).toFixed(2) }}%
+                  </td>
+                  <td />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -275,6 +319,7 @@ import AppSelect from "@/components/ui/AppSelect.vue";
 import { useTheme } from "@/composables/useTheme";
 import { usePortfolioContext } from "@/composables/usePortfolioContext";
 import { calculateVIKOR, getVikorRanking } from "@/services/api/results";
+import { getComputedCriterionWeights, type CriterionComputedWeight } from "@/services/api/criterion-importance";
 import { useAuthStore } from "@/stores/auth";
 import {
   BarController,
@@ -292,6 +337,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+
 
 const authStore = useAuthStore();
 const { isDark } = useTheme();
@@ -327,12 +373,46 @@ interface RankingResult {
 const barChart = ref<HTMLCanvasElement>();
 const radarChart = ref<HTMLCanvasElement>();
 const rankingResults = ref<RankingResult[]>([]);
+const criterionWeights = ref<CriterionComputedWeight[]>([]);
 const calculating = ref(false);
 const pageError = ref("");
 const exportNotice = ref("");
 
 let barChartInstance: Chart | null = null;
 let radarChartInstance: Chart | null = null;
+
+async function loadRanking() {
+  if (!selectedPortfolioId.value) return;
+  calculating.value = true;
+  pageError.value = "";
+  try {
+    const results = await getVikorRanking(selectedPortfolioId.value);
+    rankingResults.value = results
+      .slice()
+      .sort((a, b) => a.rank - b.rank)
+      .map((r) => ({
+        projectId: r.project.id,
+        projectName: r.project.name,
+        sValue: r.sValue,
+        rValue: r.rValue,
+        qValue: r.qValue,
+        rank: r.rank,
+        isAcceptable: r.isAcceptable,
+        c1Satisfied: r.c1Satisfied,
+        c2Satisfied: r.c2Satisfied,
+      }));
+    if (rankingResults.value.length > 0) {
+      await nextTick();
+      createBarChart();
+      if (rankingResults.value.length >= 3) createRadarChart();
+      criterionWeights.value = await getComputedCriterionWeights(selectedPortfolioId.value!);
+    }
+  } catch {
+    // No ranking yet — not an error
+  } finally {
+    calculating.value = false;
+  }
+}
 
 const calculateRanking = async () => {
   if (!selectedPortfolioId.value) {
@@ -359,11 +439,10 @@ const calculateRanking = async () => {
       }));
     await nextTick();
     createBarChart();
-    if (rankingResults.value.length >= 3) {
-      createRadarChart();
-    }
+    if (rankingResults.value.length >= 3) createRadarChart();
+    criterionWeights.value = await getComputedCriterionWeights(selectedPortfolioId.value!);
   } catch {
-    pageError.value = "Erro ao calcular ranking. Verifique se todos os projetos foram avaliados.";
+    pageError.value = "Erro ao calcular ranking. Verifique se todos os projetos foram avaliados e as importâncias dos critérios foram registradas.";
   } finally {
     calculating.value = false;
   }
@@ -594,7 +673,18 @@ const exportResults = (format: "pdf" | "excel") => {
 };
 
 onMounted(() => {
-  calculateRanking();
+  if (selectedPortfolioId.value) {
+    loadRanking();
+  }
+  watch(selectedPortfolioId, (id) => {
+    rankingResults.value = [];
+    criterionWeights.value = [];
+    barChartInstance?.destroy();
+    radarChartInstance?.destroy();
+    barChartInstance = null;
+    radarChartInstance = null;
+    if (id) loadRanking();
+  });
 });
 
 onUnmounted(() => {

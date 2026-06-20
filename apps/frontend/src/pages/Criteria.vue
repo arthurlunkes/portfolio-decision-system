@@ -9,18 +9,13 @@
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Critérios</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-              Defina os critérios de avaliação e seus pesos
+              Defina os critérios de avaliação (tipo Benefício/Custo)
             </p>
           </div>
           <AppButton variant="primary" @click="showAddModal = true">
             Adicionar Critério
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </AppButton>
         </div>
@@ -32,11 +27,13 @@
           </AppSelect>
         </div>
 
-        <!-- Weight Validation Alert -->
-        <AppAlert v-if="!isWeightValid && !loading" variant="warning">
-          A soma total dos pesos deve ser igual a 100%. Atual:
-          <strong>{{ totalWeight }}%</strong>
-        </AppAlert>
+        <!-- Info: pesos calculados automaticamente -->
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <strong>Os pesos dos critérios (ωj) são calculados automaticamente</strong>
+          pelo motor a partir das avaliações de importância fornecidas pelos decisores.
+          Acesse <strong>Avaliações → Importância dos Critérios</strong> para registrar.
+          Os pesos exibidos abaixo refletem o último cálculo do ranking.
+        </div>
 
         <div
           v-if="pageError"
@@ -45,71 +42,29 @@
           {{ pageError }}
         </div>
 
-        <!-- Peso total indicador -->
-        <div class="flex items-center gap-3">
-          <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              class="h-2 rounded-full transition-all duration-300"
-              :class="
-                isWeightValid ? 'bg-green-500' : totalWeight > 100 ? 'bg-red-500' : 'bg-amber-400'
-              "
-              :style="{ width: Math.min(totalWeight, 100) + '%' }"
-            />
-          </div>
-          <span
-            class="text-sm font-semibold"
-            :class="isWeightValid ? 'text-green-600' : 'text-amber-600'"
-          >
-            {{ totalWeight }}% / 100%
-          </span>
-        </div>
-
         <!-- Table card -->
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full">
               <thead>
                 <tr class="border-b border-gray-100 bg-gray-50/60">
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                  >
-                    Nome
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Grupo</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Descrição</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    ωj (peso calculado)
                   </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                  >
-                    Descrição
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                  >
-                    Peso
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                  >
-                    Tipo
-                  </th>
-                  <th
-                    class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                  >
-                    Ações
-                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tipo</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Criado em</th>
+                  <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-50">
                 <tr v-if="loading">
-                <td
-                  colspan="5"
-                  class="px-6 py-12 text-center text-sm text-gray-400"
-                >
-                  Carregando critérios...
-                </td>
-              </tr>
-              <tr v-else-if="criteria.length === 0">
-                  <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-400">
-                    Nenhum critério cadastrado.
-                  </td>
+                  <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-400">Carregando critérios...</td>
+                </tr>
+                <tr v-else-if="criteria.length === 0">
+                  <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-400">Nenhum critério cadastrado.</td>
                 </tr>
                 <tr
                   v-for="criterion in criteria"
@@ -119,42 +74,46 @@
                   <td class="px-6 py-4">
                     <span class="font-semibold text-gray-900 text-sm">{{ criterion.name }}</span>
                   </td>
+                  <td class="px-6 py-4">
+                    <span v-if="criterion.group" class="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                      {{ criterion.group }}
+                    </span>
+                    <span v-else class="text-gray-300 text-sm">—</span>
+                  </td>
                   <td class="px-6 py-4 max-w-xs">
-                    <span class="text-sm text-gray-500 line-clamp-1">{{
-                      criterion.description
-                    }}</span>
+                    <span class="text-sm text-gray-500 line-clamp-1">{{ criterion.description }}</span>
                   </td>
                   <td class="px-6 py-4">
                     <div class="flex items-center gap-2">
                       <div class="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           class="bg-primary-500 h-1.5 rounded-full"
-                          :style="{ width: criterion.weight + '%' }"
+                          :style="{ width: Math.min(criterion.weight, 100) + '%' }"
                         />
                       </div>
-                      <span class="text-sm font-medium text-gray-700">{{ criterion.weight }}%</span>
+                      <span
+                        class="text-sm font-medium"
+                        :class="criterion.weight > 0 ? 'text-gray-700' : 'text-gray-400'"
+                      >
+                        {{ criterion.weight > 0 ? criterion.weight.toFixed(1) + '%' : '—' }}
+                      </span>
                     </div>
                   </td>
                   <td class="px-6 py-4">
                     <span
                       class="px-2.5 py-1 text-xs font-semibold rounded-full"
-                      :class="
-                        criterion.type === 'BENEFIT'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      "
+                      :class="criterion.type === 'BENEFIT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
                     >
                       {{ criterion.type === "BENEFIT" ? "Benefício" : "Custo" }}
                     </span>
                   </td>
+                  <td class="px-6 py-4">
+                    <span class="text-sm text-gray-500">{{ formatDate(criterion.createdAt) }}</span>
+                  </td>
                   <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-2">
-                      <AppButton variant="ghost" size="sm" @click="editCriterion(criterion)"
-                        >Editar</AppButton
-                      >
-                      <AppButton variant="danger" size="sm" @click="deleteCriterion(criterion)"
-                        >Excluir</AppButton
-                      >
+                      <AppButton variant="ghost" size="sm" @click="editCriterion(criterion)">Editar</AppButton>
+                      <AppButton variant="danger" size="sm" @click="deleteCriterion(criterion)">Excluir</AppButton>
                     </div>
                   </td>
                 </tr>
@@ -178,59 +137,29 @@
               <h3 class="text-lg font-bold text-gray-900">
                 {{ showEditModal ? "Editar Critério" : "Novo Critério" }}
               </h3>
-              <button
-                type="button"
-                class="text-gray-400 hover:text-gray-600 transition-colors"
-                @click="closeModal"
-              >
+              <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors" @click="closeModal">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <form class="px-6 py-5 space-y-4" @submit.prevent="saveCriterion">
               <div>
-                <label for="criterionName" class="block text-sm font-medium text-gray-700 mb-1.5"
-                  >Nome</label
-                >
-                <AppInput
-                  id="criterionName"
-                  v-model="criterionForm.name"
-                  type="text"
-                  placeholder="Nome do critério"
-                  required
-                />
+                <label for="criterionName" class="block text-sm font-medium text-gray-700 mb-1.5">Nome</label>
+                <AppInput id="criterionName" v-model="criterionForm.name" type="text" placeholder="Nome do critério" required />
               </div>
               <div>
-                <label
-                  for="criterionDescription"
-                  class="block text-sm font-medium text-gray-700 mb-1.5"
-                  >Descrição</label
-                >
+                <label for="criterionGroup" class="block text-sm font-medium text-gray-700 mb-1.5">Grupo</label>
+                <AppInput id="criterionGroup" v-model="criterionForm.group" type="text" placeholder="Ex: Financeiro, Técnico..." />
+              </div>
+              <div>
+                <label for="criterionDescription" class="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
                 <textarea
                   id="criterionDescription"
                   v-model="criterionForm.description"
                   rows="3"
-                  required
                   placeholder="Descreva o critério..."
                   class="w-full px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-300 bg-white text-gray-900 placeholder-gray-400 text-sm transition-all outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                />
-              </div>
-              <div>
-                <label for="criterionWeight" class="block text-sm font-medium text-gray-700 mb-1.5"
-                  >Peso (%)</label
-                >
-                <AppInput
-                  id="criterionWeight"
-                  v-model="criterionForm.weight"
-                  type="number"
-                  placeholder="Ex: 25"
-                  required
                 />
               </div>
               <div>
@@ -238,28 +167,14 @@
                 <div class="grid grid-cols-2 gap-3">
                   <label
                     class="flex items-center gap-2.5 px-4 py-3 rounded-xl border cursor-pointer transition-all"
-                    :class="
-                      criterionForm.type === 'BENEFIT'
-                        ? 'border-green-400 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    "
+                    :class="criterionForm.type === 'BENEFIT' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-gray-300'"
                   >
-                    <input
-                      v-model="criterionForm.type"
-                      type="radio"
-                      value="BENEFIT"
-                      class="sr-only"
-                    />
+                    <input v-model="criterionForm.type" type="radio" value="BENEFIT" class="sr-only" />
                     <span
                       class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                      :class="
-                        criterionForm.type === 'BENEFIT' ? 'border-green-500' : 'border-gray-300'
-                      "
+                      :class="criterionForm.type === 'BENEFIT' ? 'border-green-500' : 'border-gray-300'"
                     >
-                      <span
-                        v-if="criterionForm.type === 'BENEFIT'"
-                        class="w-2 h-2 rounded-full bg-green-500"
-                      />
+                      <span v-if="criterionForm.type === 'BENEFIT'" class="w-2 h-2 rounded-full bg-green-500" />
                     </span>
                     <div>
                       <p class="text-sm font-semibold text-gray-900">Benefício</p>
@@ -268,21 +183,14 @@
                   </label>
                   <label
                     class="flex items-center gap-2.5 px-4 py-3 rounded-xl border cursor-pointer transition-all"
-                    :class="
-                      criterionForm.type === 'COST'
-                        ? 'border-red-400 bg-red-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    "
+                    :class="criterionForm.type === 'COST' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
                   >
                     <input v-model="criterionForm.type" type="radio" value="COST" class="sr-only" />
                     <span
                       class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
                       :class="criterionForm.type === 'COST' ? 'border-red-500' : 'border-gray-300'"
                     >
-                      <span
-                        v-if="criterionForm.type === 'COST'"
-                        class="w-2 h-2 rounded-full bg-red-500"
-                      />
+                      <span v-if="criterionForm.type === 'COST'" class="w-2 h-2 rounded-full bg-red-500" />
                     </span>
                     <div>
                       <p class="text-sm font-semibold text-gray-900">Custo</p>
@@ -292,9 +200,7 @@
                 </div>
               </div>
               <div class="flex justify-end gap-3 pt-2">
-                <AppButton type="button" variant="secondary" @click="closeModal"
-                  >Cancelar</AppButton
-                >
+                <AppButton type="button" variant="secondary" @click="closeModal">Cancelar</AppButton>
                 <AppButton type="submit" variant="primary">
                   {{ showEditModal ? "Atualizar" : "Adicionar" }}
                 </AppButton>
@@ -308,7 +214,6 @@
 </template>
 
 <script setup lang="ts">
-import AppAlert from "@/components/ui/AppAlert.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppHeader from "@/components/layout/AppHeader.vue";
 import AppInput from "@/components/ui/AppInput.vue";
@@ -322,7 +227,13 @@ import {
   updateCriterion as apiUpdate,
 } from "@/services/api/criteria";
 import type { Criterion } from "@/services/api/criteria";
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
+
+const formatDate = (d: string) => {
+  if (!d) return "-";
+  const date = new Date(d);
+  return isNaN(date.getTime()) ? "-" : date.toLocaleDateString("pt-BR");
+};
 
 const authStore = useAuthStore();
 const { portfolios, selectedPortfolioId } = usePortfolioContext();
@@ -336,7 +247,7 @@ const criterionForm = ref({
   id: "",
   name: "",
   description: "",
-  weight: "10",
+  group: "",
   type: "BENEFIT" as "BENEFIT" | "COST",
 });
 
@@ -357,16 +268,8 @@ async function loadCriteria() {
 onMounted(loadCriteria);
 watch(selectedPortfolioId, loadCriteria);
 
-const totalWeight = computed(() => {
-  return criteria.value.reduce((sum, criterion) => sum + criterion.weight, 0);
-});
-
-const isWeightValid = computed(() => {
-  return Math.abs(totalWeight.value - 100) < 0.01;
-});
-
 const editCriterion = (criterion: Criterion) => {
-  criterionForm.value = { ...criterion, weight: String(criterion.weight) };
+  criterionForm.value = { id: criterion.id, name: criterion.name, description: criterion.description, group: criterion.group, type: criterion.type };
   showEditModal.value = true;
 };
 
@@ -381,13 +284,14 @@ const deleteCriterion = async (criterion: Criterion) => {
 };
 
 const saveCriterion = async () => {
+  if (!selectedPortfolioId.value) { pageError.value = "Selecione um portfólio."; return; }
   try {
     if (showEditModal.value) {
       const updated = await apiUpdate(criterionForm.value.id, {
         portfolioId: selectedPortfolioId.value,
         name: criterionForm.value.name,
         description: criterionForm.value.description,
-        weight: Number(criterionForm.value.weight),
+        group: criterionForm.value.group,
         type: criterionForm.value.type,
       });
       const idx = criteria.value.findIndex((c) => c.id === updated.id);
@@ -397,7 +301,7 @@ const saveCriterion = async () => {
         portfolioId: selectedPortfolioId.value,
         name: criterionForm.value.name,
         description: criterionForm.value.description,
-        weight: Number(criterionForm.value.weight),
+        group: criterionForm.value.group,
         type: criterionForm.value.type,
       });
       criteria.value.push(created);
@@ -411,12 +315,6 @@ const saveCriterion = async () => {
 const closeModal = () => {
   showAddModal.value = false;
   showEditModal.value = false;
-  criterionForm.value = {
-    id: "",
-    name: "",
-    description: "",
-    weight: "10",
-    type: "BENEFIT",
-  };
+  criterionForm.value = { id: "", name: "", description: "", group: "", type: "BENEFIT" };
 };
 </script>

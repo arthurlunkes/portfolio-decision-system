@@ -5,11 +5,13 @@ export interface Criterion {
   portfolioId: string
   name: string
   description: string
-  weight: number
+  group: string
+  weight: number  // ωj calculado (% — ex: 13.54); 0 = ainda não calculado
   type: 'BENEFIT' | 'COST'
+  createdAt: string
 }
 
-const FIELDS = 'id portfolioId name description weight type'
+const FIELDS = 'id portfolioId name description group weight type createdAt'
 
 export async function getCriteria(portfolioId?: string): Promise<Criterion[]> {
   const data = await gql<{ criteria: Criterion[] }>(
@@ -23,7 +25,7 @@ export async function createCriterion(input: {
   portfolioId: string
   name: string
   description: string
-  weight: number
+  group?: string
   type: 'BENEFIT' | 'COST'
 }): Promise<Criterion> {
   const data = await gql<{ createCriterion: Criterion }>(
@@ -35,7 +37,7 @@ export async function createCriterion(input: {
 
 export async function updateCriterion(
   id: string,
-  input: { portfolioId: string; name: string; description: string; weight: number; type: 'BENEFIT' | 'COST' },
+  input: { portfolioId: string; name: string; description: string; group?: string; type: 'BENEFIT' | 'COST' },
 ): Promise<Criterion> {
   const data = await gql<{ updateCriterion: Criterion }>(
     `mutation($id: ID!, $input: CreateCriterionInput!) { updateCriterion(id: $id, input: $input) { ${FIELDS} } }`,

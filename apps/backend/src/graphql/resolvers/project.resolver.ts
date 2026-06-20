@@ -22,19 +22,19 @@ export const projectResolvers = {
   Mutation: {
     createProject: (
       _: unknown,
-      { input }: { input: { portfolioId: string; name: string; description: string } },
+      { input }: { input: { portfolioId: string; name: string; description?: string } },
       ctx: Context,
     ) => {
       requireAuth(ctx);
-      return prisma.project.create({ data: input, include: PROJECT_INCLUDE });
+      return prisma.project.create({ data: { ...input, description: input.description ?? "" }, include: PROJECT_INCLUDE });
     },
     updateProject: (
       _: unknown,
-      { id, input }: { id: string; input: { portfolioId: string; name: string; description: string } },
+      { id, input }: { id: string; input: { portfolioId: string; name: string; description?: string } },
       ctx: Context,
     ) => {
       requireAuth(ctx);
-      return prisma.project.update({ where: { id }, data: input, include: PROJECT_INCLUDE });
+      return prisma.project.update({ where: { id }, data: { ...input, description: input.description ?? "" }, include: PROJECT_INCLUDE });
     },
     deleteProject: async (_: unknown, { id }: { id: string }, ctx: Context) => {
       requireAuth(ctx);

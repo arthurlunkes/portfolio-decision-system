@@ -26,21 +26,12 @@
                 type="text"
               />
             </div>
-            <div class="flex gap-2 flex-wrap">
-              <button
-                v-for="filter in roleFilters"
-                :key="filter.value"
-                type="button"
-                class="px-4 py-2.5 text-sm font-medium rounded-xl border transition-colors duration-150"
-                :class="
-                  activeRoleFilter === filter.value
-                    ? 'bg-primary-600 text-white border-primary-600'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                "
-                @click="activeRoleFilter = filter.value"
-              >
-                {{ filter.label }}
-              </button>
+            <div class="w-48">
+              <AppSelect v-model="activeRoleFilter">
+                <option v-for="filter in roleFilters" :key="filter.value" :value="filter.value">
+                  {{ filter.label }}
+                </option>
+              </AppSelect>
             </div>
           </div>
         </div>
@@ -314,43 +305,14 @@
               : undefined
           "
         >
-          <div
-            class="grid grid-cols-3 gap-2"
-            :class="{ 'opacity-50 pointer-events-none': !isAdmin && isEditing }"
+          <AppSelect
+            v-model="userForm.role"
+            :disabled="!isAdmin && isEditing"
           >
-            <label
-              v-for="role in roles"
-              :key="role.value"
-              class="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 cursor-pointer transition-all"
-              :class="
-                userForm.role === role.value
-                  ? role.activeClass
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              "
-            >
-              <input
-                v-model="userForm.role"
-                type="radio"
-                :value="role.value"
-                class="sr-only"
-                :disabled="!isAdmin && isEditing"
-              />
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  :d="role.icon"
-                />
-              </svg>
-              <span class="text-xs font-semibold">{{ role.label }}</span>
-            </label>
-          </div>
+            <option v-for="role in roles" :key="role.value" :value="role.value">
+              {{ role.label }}
+            </option>
+          </AppSelect>
         </FormField>
 
         <div
@@ -482,6 +444,7 @@ import AppBadge from "@/components/ui/AppBadge.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppInput from "@/components/ui/AppInput.vue";
 import AppModal from "@/components/ui/AppModal.vue";
+import AppSelect from "@/components/ui/AppSelect.vue";
 import AppToggle from "@/components/ui/AppToggle.vue";
 import FormField from "@/components/ui/FormField.vue";
 import type { User, UserRole } from "@/services/api/users";
